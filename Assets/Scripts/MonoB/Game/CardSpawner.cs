@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 public class CardSpawner : MonoBehaviour
@@ -22,27 +23,36 @@ public class CardSpawner : MonoBehaviour
     List<int> usedColorsIndices = new List<int>();
 
     [Header("Grid System")]
-    [SerializeField] Transform cardParent;
-    Vector3 positionVector;
-    GameObject card;
     GridManager grid;
+    [SerializeField] Transform cardParent;
+    GameObject card;
     // uncle of pieces
     Transform uncle;
     GameObject piece;
+    // position of playable cards
+    Vector3 positionVector;
     float gapBetweenPieces = 0.03f;
     float cardLocalY;
+    int cardNumber = 0;
+    // kartlarin parcalarinin renklerini, poslarini falan iceren baska bir sozlukle ic ice sozluk(bunu gec)
+    Dictionary<string, Vector3> positions = new Dictionary<string, Vector3>();
+
 
     //public float CardLocalY { get { return cardLocalY; } }
     private void Start()
     {
         grid = GetComponent<GridManager>();
+
         // set the size of arr as length of list
         pickedItemFreq = new int[cardFields.cardColors.Count];
-
         uncle = cardParent.GetChild(0);
 
-        
-
+        // if level data exists: 
+        //  another method, fill usedColorsIndices from that data
+        // else: following block:
+        SpawnCards(false);
+        SpawnCards(false);
+        SpawnCards(false);
         SpawnCards(true);
     }
 
@@ -50,13 +60,14 @@ public class CardSpawner : MonoBehaviour
     private void SpawnCards(bool isPlayable)
     {
         int pieceCount = 4;
-        card = new GameObject("card");
         // that variable slides pieces a bit from right to left and from up to down and saves card's pivot and center 
         float slideUnitX = 0, slideUnitY = 0;
 
+        card = new GameObject("card" + cardNumber);
         card.transform.SetParent(cardParent);
         // uncle of pieces is sibling of card (parent of pieces)
         card.transform.localScale = uncle.localScale;
+        cardNumber++;
 
         /*
         piece = new GameObject("piece");
@@ -65,6 +76,35 @@ public class CardSpawner : MonoBehaviour
         var sprite = Sprite.Create(texture, new Rect(0, 0, 32, 32), Vector3.zero);
         spriteRenderer.sprite = sprite;
         */
+
+
+        if (isPlayable)
+        {
+            cardLocalY = grid.DropZoneSize + .5f;
+            // find the median of dropZoneHeight and align card
+            if (grid.DropZoneSize % 2 == 0)
+            {
+                // set start position a bit higher from the dropZoneHeight
+                positionVector = new Vector3(grid.DropZoneSize / 2 - 0.5f, cardLocalY, 1f);
+            }
+            else
+            {
+                positionVector = new Vector3(grid.DropZoneSize / 2, cardLocalY, 1f);
+            }
+
+            card.transform.localPosition = positionVector;
+
+            // surda bir yerde mover scripti vs ilistir GO'ya
+            card.AddComponent<HorizontalMover>();
+            Collider2D coll = card.AddComponent<BoxCollider2D>();
+            coll.isTrigger = true;
+        }
+        else // if not isPlayable, then spawn them at the bottom of the DropZone
+        {
+            card.transform.localPosition = PickRandomCoordinate();
+            // burda eski bilgiler varsa kontrol edilebilir ve metota yonlendirilebilir. Ordan butun kartlarin
+            // eski renkleri, 
+        }
 
         for (int i = 0; i < pieceCount; i++)
         {
@@ -102,31 +142,7 @@ public class CardSpawner : MonoBehaviour
         // surda bir yerlerde de yok olma scripti koy(ortak olsun o script).Ayrica collider de ekle. Collider
         // pieceye eklenecek
 
-        if(isPlayable)
-        {
-            cardLocalY = grid.DropZoneSize + .5f;
-            // find the median of dropZoneHeight and align card
-            if (grid.DropZoneSize % 2 == 0)
-            {
-                // give starting position a bit higher from the dropZoneHeight
-                positionVector = new Vector3(grid.DropZoneSize / 2 - 0.5f, cardLocalY, 1f);
-            }
-            else
-            {
-                positionVector = new Vector3(grid.DropZoneSize / 2, cardLocalY, 1f);
-            }
-
-            card.transform.localPosition = positionVector;
-
-            // surda bir yerde mover scripti vs ilistir GO'ya
-            card.AddComponent<HorizontalMover>();
-            Collider2D coll = card.AddComponent<BoxCollider2D>();
-            coll.isTrigger = true;
-        }
-        else // if not isPlayable, then spawn them at the bottom of the DropZone
-        {
-            card.transform.localPosition = PickRandomCoordinate();
-        }
+        // playable card if kontrolu burdaydi
     }
 
     int PickRandomCardColors(int pieceNumber, bool isPlayable)
@@ -183,9 +199,31 @@ public class CardSpawner : MonoBehaviour
     Vector3 PickRandomCoordinate()
     {
         Vector3 randomPos = new Vector3();
+        int range = grid.DropZoneSize - 1;
+        int randX, randY;
+        List<Vector3> oldPositions = new List<Vector3>(positions.Values);
 
         // ya en asagi tamamen dolacak ya da halihazirda kullanilan bir yerin ustune konulacak kutular (bu iki yol
         // arasinda bir randomizasyon saglanilabilir)
+        while (true)
+        {
+            randX = Random.Range(0, range);
+            randY = Random.Range(0, range);
+            print("RandX: " + randX + " RandY: " + randY);
+            randomPos = new Vector3(randX, randY);
+            // randompos sozlukte olmayacak, y > 0 ise de y - 1 ,'de kutu olacak
+            //!positions.Values.Contains(randomPos)
+            if (!oldPositions.Contains(randomPos))
+            {
+                // if y is greater than 0, card needs another card under as platform to stand on
+                if(randomPos.y == 0 || randomPos.y > 0 && 
+                    oldPositions.Contains(new Vector3(randomPos.x, randomPos.y - 1)))
+                {
+                    positions.Add(card.transform.name, randomPos);
+                    break;
+                }
+            }
+        }
 
         return randomPos.normalized;
     }
