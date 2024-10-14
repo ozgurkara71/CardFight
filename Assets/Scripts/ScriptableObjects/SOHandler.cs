@@ -18,51 +18,6 @@ public class SOHandler : MonoBehaviour
     {
         // Card magentaCard = new Card(); => This method of creating SO instance is wrong!
         // 'ScriptableObject.CreateInstance' method instead of 'new Card()'
-        /*
-        Card magentaCard;
-        cardAssetPath = "Assets/SO/Cards/MagentaCard.asset";
-        magentaCard = AssetDatabase.LoadAssetAtPath<Card>(cardAssetPath);
-        if (magentaCard == null)
-        {
-            // Create and save ScriptableObject because it doesn't exist yet
-            magentaCard = ScriptableObject.CreateInstance<Card>();
-            magentaCard.cardColor = Color.magenta;
-            AssetDatabase.CreateAsset(magentaCard, cardAssetPath);
-        }
-
-        Card greenCard;
-        cardAssetPath = "Assets/SO/Cards/GreenCard.asset";
-        greenCard = AssetDatabase.LoadAssetAtPath<Card>(cardAssetPath);
-        if (greenCard == null)
-        {
-            // Create and save ScriptableObject because it doesn't exist yet
-            greenCard = ScriptableObject.CreateInstance<Card>();
-            greenCard.cardColor = Color.green;
-            AssetDatabase.CreateAsset(greenCard, cardAssetPath);
-        }
-
-        Card blueCard;
-        cardAssetPath = "Assets/SO/Cards/BlueCard.asset";
-        blueCard = AssetDatabase.LoadAssetAtPath<Card>(cardAssetPath);
-        if (blueCard == null)
-        {
-            // Create and save ScriptableObject because it doesn't exist yet
-            blueCard = ScriptableObject.CreateInstance<Card>();
-            blueCard.cardColor = Color.blue;
-            AssetDatabase.CreateAsset(blueCard, cardAssetPath);
-        }
-
-        Card CyanCard;
-        cardAssetPath = "Assets/SO/Cards/CyanCard.asset";
-        CyanCard = AssetDatabase.LoadAssetAtPath<Card>(cardAssetPath);
-        if (CyanCard == null)
-        {
-            // Create and save ScriptableObject because it doesn't exist yet
-            CyanCard = ScriptableObject.CreateInstance<Card>();
-            CyanCard.cardColor = Color.cyan;
-            AssetDatabase.CreateAsset(CyanCard, cardAssetPath);
-        }
-        */
 
         Card cardFields;
         cardAssetPath = "Assets/SO/Cards/CardFields.asset";
@@ -71,11 +26,20 @@ public class SOHandler : MonoBehaviour
         {
             // Create and save ScriptableObject because it doesn't exist yet
             cardFields = ScriptableObject.CreateInstance<Card>();
-            cardFields.cardColors.Add(Color.magenta);
-            cardFields.cardColors.Add(Color.green);
-            cardFields.cardColors.Add(Color.blue);
-            cardFields.cardColors.Add(Color.cyan);
+            cardFields.CardColors.Add(Color.magenta);
+            cardFields.CardColors.Add(Color.green);
+            cardFields.CardColors.Add(Color.blue);
+            cardFields.CardColors.Add(Color.cyan);
             AssetDatabase.CreateAsset(cardFields, cardAssetPath);
+        }
+
+        LevelData cardData;
+        cardAssetPath = "Assets/SO/Cards/CardData.asset";
+        cardData = AssetDatabase.LoadAssetAtPath<LevelData>(cardAssetPath);
+        if(cardData == null)
+        {
+            cardData = ScriptableObject.CreateInstance<LevelData>();
+            AssetDatabase.CreateAsset(cardData, cardAssetPath);
         }
     }
 

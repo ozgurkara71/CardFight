@@ -414,6 +414,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   sprt: {fileID: 7482667652216324306, guid: 311925a002f4447b3a28927169b83ea6, type: 3}
+  cardData: {fileID: 11400000, guid: fbc9c8ab59f1469448756ec1374689f7, type: 2}
   cardFields: {fileID: 11400000, guid: 36c26e204f307d84d8a5eebf1270c3d4, type: 2}
   cardParent: {fileID: 718753983}
 --- !u!1 &1371781196
