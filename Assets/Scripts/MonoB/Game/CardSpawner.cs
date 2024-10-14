@@ -43,13 +43,15 @@ public class CardSpawner : MonoBehaviour
     {
         grid = GetComponent<GridManager>();
 
-        // set the size of arr as length of list
-        pickedItemFreq = new int[cardFields.cardColors.Count];
         uncle = cardParent.GetChild(0);
 
         // if level data exists: 
         //  another method, fill usedColorsIndices from that data
         // else: following block:
+        SpawnCards(false);
+        SpawnCards(false);
+        SpawnCards(false);
+        SpawnCards(false);
         SpawnCards(false);
         SpawnCards(false);
         SpawnCards(false);
@@ -63,7 +65,10 @@ public class CardSpawner : MonoBehaviour
         // that variable slides pieces a bit from right to left and from up to down and saves card's pivot and center 
         float slideUnitX = 0, slideUnitY = 0;
 
-        card = new GameObject("card" + cardNumber);
+        // set the size of arr as length of list
+        pickedItemFreq = new int[cardFields.cardColors.Count];
+
+        card = new GameObject("card" + cardNumber.ToString());
         card.transform.SetParent(cardParent);
         // uncle of pieces is sibling of card (parent of pieces)
         card.transform.localScale = uncle.localScale;
@@ -207,6 +212,9 @@ public class CardSpawner : MonoBehaviour
         // arasinda bir randomizasyon saglanilabilir)
         while (true)
         {
+            // bence gereksiz islemlerden kurtarmak icin bu range ye kadar olan sayilari bir listeye at.
+            // Eger dolan satir veya sutun varsa listeden o sayiyi cikart.
+            // Secilecek sayilar da surekli guncellenen bu listeden rastgele olarak secilsin
             randX = Random.Range(0, range);
             randY = Random.Range(0, range);
             print("RandX: " + randX + " RandY: " + randY);
@@ -215,16 +223,18 @@ public class CardSpawner : MonoBehaviour
             //!positions.Values.Contains(randomPos)
             if (!oldPositions.Contains(randomPos))
             {
+                print("1: " + randomPos);
                 // if y is greater than 0, card needs another card under as platform to stand on
                 if(randomPos.y == 0 || randomPos.y > 0 && 
                     oldPositions.Contains(new Vector3(randomPos.x, randomPos.y - 1)))
                 {
+                    print("2: " + randomPos);
                     positions.Add(card.transform.name, randomPos);
                     break;
                 }
             }
         }
-
-        return randomPos.normalized;
+        print("Non norm: " + randomPos + " normalized: " + randomPos.normalized);
+        return randomPos;
     }
 }
