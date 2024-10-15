@@ -7,8 +7,8 @@ public class LevelData : ScriptableObject
     Dictionary<int, Dictionary<string, Vector3>> cardPositions = new Dictionary<int, Dictionary<string, Vector3>>();
     // int stores scene number, dictionary stores card name in string and piece colors in List(1st element is
     // 1st piece's color, 2nd element is 2nd piece's color...)
-    Dictionary<int, Dictionary<string, List<Color>>> pieceColors = 
-        new Dictionary<int, Dictionary<string, List<Color>>>();
+    Dictionary<int, Dictionary<string, Color[]>> pieceColors = 
+        new Dictionary<int, Dictionary<string, Color[]>>();
 
     public Dictionary<int, Dictionary<string, Vector3>> CardPositions 
     {  
@@ -16,7 +16,7 @@ public class LevelData : ScriptableObject
         set { cardPositions = value; }
     }
 
-    public Dictionary<int, Dictionary<string, List<Color>>> PieceColors 
+    public Dictionary<int, Dictionary<string, Color[]>> PieceColors 
     {  
         get { return pieceColors; } 
         set { pieceColors = value; }

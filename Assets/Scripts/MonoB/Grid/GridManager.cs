@@ -58,6 +58,7 @@ public class GridManager : MonoBehaviour
 
         // center the drop zone
         float factor = (float)width / (float)9 - 1;
+        // that ratio stores how much this parent should move from left to right
         float lengthRatio = parent.localScale.x - (0.55f + (0.05f) * factor);
         
         if (parent == boosterParent)

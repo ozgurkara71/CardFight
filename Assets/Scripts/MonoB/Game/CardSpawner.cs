@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -18,28 +19,29 @@ public class CardSpawner : MonoBehaviour
     [Header("")]
     [SerializeField] LevelData cardData;
     [SerializeField] Card cardFields;
-    // bence pickedItemFreq ile usedColorsIndices i birlestirebilirsin ikisi de sadece renk bilgilerini depolayacaksa.
-    // frekansi birden buyuk olan renkleri kullan kartlarda. ASlþnda hayir. frekansin her adimda sifirlanmasi gerek.
+
+    // tanimlamayi random color fonk unun icinde yap
     int[] pickedColorFreq;
     // add colors that are using by non-playable cards to list and after pick them to use for playable cards
     List<int> usedColorsIndices = new List<int>();
 
     [Header("Grid System")]
+    // buraya bir el at
     GridManager grid;
     [SerializeField] Transform cardParent;
     GameObject card;
     // uncle of pieces
     Transform uncle;
     GameObject piece;
-    // position of playable cards
-    Vector3 positionVector;
     float gapBetweenPieces = 0.03f;
     float cardLocalY;
     int cardNumber = 0;
+    int pieceCount = 4;
     // kartlarin parcalarinin renklerini, poslarini falan iceren baska bir sozlukle ic ice sozluk(bunu gec)
     Dictionary<string, Vector3> positionsToStore = new Dictionary<string, Vector3>();
     // store piece's colors to add to ScriptableObject to use again when the scene is reloaded
-    Dictionary<string, List<Color>> pieceColorsToStore = new Dictionary<string, List<Color>>();
+    Dictionary<string, Color[]> pieceColorsToStore = new Dictionary<string, Color[]>();
+
 
 
     //public float CardLocalY { get { return cardLocalY; } }
@@ -52,45 +54,67 @@ public class CardSpawner : MonoBehaviour
         // if level data exists: 
         //  another method, fill usedColorsIndices from that data
         // else: following block:
-        //InitializeLevel();
+        InitializeLevel();
         // --
-        
-        SpawnCards(false);
-        SpawnCards(false);
-        SpawnCards(false);
-        SpawnCards(false);
-        SpawnCards(false);
-        SpawnCards(false);
-        SpawnCards(false);
-        
-        SpawnCards(true);
+        // -------------------------------------------
+        string cardName = "";
+        Color[] randomColors = new Color[pieceCount];
+
+        // ------------------------- pos
+        // position of playable cards
+        Vector3 positionVector;
+        cardLocalY = grid.DropZoneSize + .5f;
+        // find the median of dropZoneHeight and align card
+        if (grid.DropZoneSize % 2 == 0)
+        {
+            // set start position a bit higher from the dropZoneHeight
+            positionVector = new Vector3(grid.DropZoneSize / 2 - 0.5f, cardLocalY, 1f);
+        }
+        else
+        {
+            positionVector = new Vector3(grid.DropZoneSize / 2, cardLocalY, 1f);
+        }
+        // ------------------------- pos
+
+        cardName += "card" + cardNumber.ToString();
+        cardNumber++;
+        randomColors = PickRandomPieceColor(false);
+        SpawnCards(true, cardName, randomColors, positionVector);
+        cardName = "";
+        //SpawnCards(true);
     }
 
     // ...Step 2 - Create some example cards in the current scene
-    private void SpawnCards(bool isPlayable)
+    private void SpawnCards(bool isPlayable, string cardName, Color[] randomColors, Vector3 cardPosition)
     {
-        int pieceCount = 4;
+        // ?? kaldir
         List<Color> pieceColors = new List<Color>();
-        // that variable slides pieces a bit from right to left and from up to down and saves card's pivot and center 
+        // those variables slides pieces a bit from right to left and from up to down
+        // and saves card's pivot and center 
         float slideUnitX = 0, slideUnitY = 0;
 
-        // set the size of arr as length of frequency list
-        pickedColorFreq = new int[cardFields.CardColors.Count];
-
-        card = new GameObject("card" + cardNumber.ToString());
+        // 1 --------------------------------------------
+        //card = new GameObject("card" + cardNumber.ToString());
+        card = new GameObject(cardName);
         card.transform.SetParent(cardParent);
         // uncle of pieces is sibling of card (parent of pieces)
         card.transform.localScale = uncle.localScale;
-        cardNumber++;
+        // 1
+        //cardNumber++;
 
         for (int i = 0; i < pieceCount; i++)
         {
+            // 2??? --------------------------------------------
             piece = new GameObject("piece" + i.ToString());
             var spriteRenderer = piece.AddComponent<SpriteRenderer>();
 
             spriteRenderer.sprite = sprt;
+            // 3 --------------------------------------------
+            /*
             int colorIndex = PickRandomCardColors(i, isPlayable);
             spriteRenderer.color = cardFields.CardColors[colorIndex];
+            */
+            spriteRenderer.color = randomColors[i];
             piece.AddComponent<BoxCollider2D>();
 
             piece.transform.SetParent(card.transform);
@@ -99,7 +123,7 @@ public class CardSpawner : MonoBehaviour
                 uncle.localScale.x / 2f,
                 uncle.localScale.y / 2f,
                 uncle.localScale.z / 2f);
-            // every piece have to get away from another as amount of it's one edge
+            // each piece should be as far away from the other as one side
             // 00 01; 10 11 => (i, j)
             // 0 / 2 = 0, 1 / 2 = 0; 2 / 2 = 1, 3 / 2 = 1
             // i % 2 will give 0s and 1s in a row each time and we can use this to set j coordinates
@@ -115,11 +139,14 @@ public class CardSpawner : MonoBehaviour
                 piece.transform.localScale.y - gapBetweenPieces,
                 piece.transform.localScale.z - gapBetweenPieces);
 
+            // 4 --------------------------------------------
             // if card is non-playable, add it's colors to list to give same colors on the next scene load
+            /*
             if(!isPlayable)
             {
                 pieceColors.Add(spriteRenderer.color);
             }
+            */
         }
         // surda bir yerlerde de yok olma scripti koy(ortak olsun o script).Ayrica collider de ekle. Collider
         // pieceye eklenecek
@@ -127,6 +154,7 @@ public class CardSpawner : MonoBehaviour
         // playable card if kontrolu burdaydi
         if (isPlayable)
         {
+            /*
             cardLocalY = grid.DropZoneSize + .5f;
             // find the median of dropZoneHeight and align card
             if (grid.DropZoneSize % 2 == 0)
@@ -140,6 +168,7 @@ public class CardSpawner : MonoBehaviour
             }
 
             card.transform.localPosition = positionVector;
+            */
 
             // surda bir yerde mover scripti vs ilistir GO'ya
             card.AddComponent<HorizontalMover>();
@@ -148,35 +177,39 @@ public class CardSpawner : MonoBehaviour
         }
         else // if not isPlayable, then spawn them at the bottom of the DropZone
         {
-            card.transform.localPosition = PickRandomCoordinate();
-            pieceColorsToStore.Add(card.transform.name, pieceColors);
-            // burda eski bilgiler varsa kontrol edilebilir ve metota yonlendirilebilir. Ordan butun kartlarin
-            // eski renkleri, 
+
         }
+
+        card.transform.localPosition = cardPosition;
     }
 
     // asagidakileri ac ve duzenle
-    int PickRandomCardColors(int pieceNumber, bool isPlayable)
+    Color[] PickRandomPieceColor(bool isPlayable)
     {
-        int randomIndex = -1;
+        int randomColorIndex = -1;
+        // randomColors[0] -> piece1's color, randomColors[1] -> piece2's color, ...
+        Color[] randomColors = new Color[pieceCount];
+        int pieceIndex = 0;
 
-        while (true)
+        // set the size of arr as length of frequency list or refresh it
+        pickedColorFreq = new int[cardFields.CardColors.Count];
+        while (pieceIndex < pieceCount)
         {
-            randomIndex = Random.Range(0, cardFields.CardColors.Count);
+            randomColorIndex = Random.Range(0, cardFields.CardColors.Count);
 
             // the purpose of the following block is to ensure that playable cards have colors used by
             // the non-playable cards
             // burayi hareketsiz kartlari yaptiktan sonra ac
             
-            if(!isPlayable && !usedColorsIndices.Contains(randomIndex))
+            if(!isPlayable && !usedColorsIndices.Contains(randomColorIndex))
             { 
-                usedColorsIndices.Add(randomIndex);
+                usedColorsIndices.Add(randomColorIndex);
             }
-            else if(isPlayable && !usedColorsIndices.Contains(randomIndex))
+            else if(isPlayable && !usedColorsIndices.Contains(randomColorIndex))
             {
                 continue;
             }
-            
+
 
             // (0, 0) (1, 0) (0, 1) (1, 1)
             // (0, 0) (0, 1) (1, 0) (1, 1)
@@ -186,28 +219,43 @@ public class CardSpawner : MonoBehaviour
             // pieces on diagonal must have different colors because otherwise merge direction is ambigious
             // if vertcial or horizontal pieces merge (in this case we have 3 same colored pieces)  
             // diagonal pieces: 0th piece and 3rd piece, 1st piece and 2nd piece
-            if (pieceNumber == 2 &&
+
+            // buralari dizi ile degistirmeyi oncer. Her defasinda GetCoponent yapmaktan daha etkili olmaz mi
+            /*
+            if (pieceCount == 2 &&
                 card.transform.GetChild(1).GetComponent<SpriteRenderer>().color == cardFields.CardColors[randomIndex])
             {
                 continue;
             }
-            else if (pieceNumber == 3 &&
+            else if (pieceCount == 3 &&
                 card.transform.GetChild(0).GetComponent<SpriteRenderer>().color == cardFields.CardColors[randomIndex])
             {
                 continue;
             }
+            */
 
-            if (pickedColorFreq[randomIndex] < 2)
+            
+            if (pieceIndex == 2 && randomColors[1] == cardFields.CardColors[randomColorIndex])
             {
-                pickedColorFreq[randomIndex]++;
-                break;
+                continue;
+            }
+            else if (pieceIndex == 3 && randomColors[0] == cardFields.CardColors[randomColorIndex])
+            {
+                continue;
+            }
+
+            if (pickedColorFreq[randomColorIndex] < 2)
+            {
+                pickedColorFreq[randomColorIndex]++;
+                randomColors[pieceIndex] = cardFields.CardColors[randomColorIndex];
+                pieceIndex++;
             }
         }
 
-        return randomIndex;
+        return randomColors;
     }
 
-    Vector3 PickRandomCoordinate()
+    Vector3 PickRandomCoordinate(string cardName)
     {
         Vector3 randomPos = new Vector3();
         int range = grid.DropZoneSize - 1;
@@ -231,7 +279,7 @@ public class CardSpawner : MonoBehaviour
                 if(randomPos.y == 0 || randomPos.y > 0 && 
                     oldPositions.Contains(new Vector3(randomPos.x, randomPos.y - 1)))
                 {
-                    positionsToStore.Add(card.transform.name, randomPos);
+                    positionsToStore.Add(cardName, randomPos);
                     break;
                 }
             }
@@ -239,28 +287,41 @@ public class CardSpawner : MonoBehaviour
         return randomPos;
     }
 
+    
     void InitializeLevel()
     {
         int scenIndex = SceneManager.GetActiveScene().buildIndex;
+        string cardName = "";
+        Color[] randomColors = new Color[pieceCount];
+        Vector3 randomPos;
+        int cardCountToInstantiate = 6;
 
-        if(!cardData.CardPositions.Keys.Contains(scenIndex))
+        if (!cardData.CardPositions.Keys.Contains(scenIndex))
         {
-            SpawnCards(false);
-            SpawnCards(false);
-            SpawnCards(false);
-            SpawnCards(false);
-            SpawnCards(false);
-            SpawnCards(false);
-            SpawnCards(false);
-
+            for(int i = 0; i < cardCountToInstantiate; i++)
+            {
+                cardName += "card" + cardNumber.ToString();
+                randomColors = PickRandomPieceColor(false);
+                // if card is non-playable, add it's colors to list to give same colors on the next scene load
+                pieceColorsToStore.Add(cardName, randomColors);
+                randomPos = PickRandomCoordinate(cardName);
+                SpawnCards(false, cardName, randomColors, randomPos);
+                cardName = "";
+                cardNumber++;
+            }
+            /*
+            // add positions and add piece colors to SO
             cardData.CardPositions.Add(scenIndex, positionsToStore);
+            // add piece colors to SO
             cardData.PieceColors.Add(scenIndex, pieceColorsToStore);
+            */
         }
         else
         {
             GetCardDataFromMemory(cardData.CardPositions[scenIndex]);
         }
     }
+    
 
     void GetCardDataFromMemory(Dictionary<string, Vector3> positionsFromMemory)
     {
