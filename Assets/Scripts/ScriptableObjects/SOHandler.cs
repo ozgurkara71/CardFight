@@ -19,6 +19,8 @@ public class SOHandler : MonoBehaviour
         // Card magentaCard = new Card(); => This method of creating SO instance is wrong!
         // 'ScriptableObject.CreateInstance' method instead of 'new Card()'
 
+        // DIKKAT! AssetDatabase buildde cagrilamiyor
+
         Card cardFields;
         cardAssetPath = "Assets/SO/Cards/CardFields.asset";
         cardFields = AssetDatabase.LoadAssetAtPath<Card>(cardAssetPath);
@@ -33,14 +35,17 @@ public class SOHandler : MonoBehaviour
             AssetDatabase.CreateAsset(cardFields, cardAssetPath);
         }
 
+        /*
         LevelData cardData;
         cardAssetPath = "Assets/SO/Cards/CardData.asset";
         cardData = AssetDatabase.LoadAssetAtPath<LevelData>(cardAssetPath);
         if(cardData == null)
         {
             cardData = ScriptableObject.CreateInstance<LevelData>();
+
             AssetDatabase.CreateAsset(cardData, cardAssetPath);
         }
+        */
     }
 
     // Step 2 - Create some example cards in the current scene...

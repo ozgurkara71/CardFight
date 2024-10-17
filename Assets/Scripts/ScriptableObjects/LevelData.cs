@@ -15,10 +15,11 @@ public class LevelData : ScriptableObject
         get { return cardPositions; } 
         set { cardPositions = value; }
     }
-
+    /*
     public Dictionary<int, Dictionary<string, Color[]>> PieceColors 
     {  
         get { return pieceColors; } 
         set { pieceColors = value; }
     }
+    */
 }

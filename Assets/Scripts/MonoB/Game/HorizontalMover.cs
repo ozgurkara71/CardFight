@@ -32,6 +32,7 @@ public class HorizontalMover : MonoBehaviour
         if(Input.GetMouseButtonDown(0) && isHovering)
         {
             // simdilik
+            // collideri (ve hatta mover i) setactive false de
             print("Geldi");
             isHovering = false;
         }
