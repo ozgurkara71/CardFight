@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using UnityEngine.UIElements;
 
 public class Merge : MonoBehaviour
 {
@@ -271,13 +272,15 @@ public class Merge : MonoBehaviour
 
             if (minIndex != -1 && childrenColors[i] == adjCardChildrenColors[minIndex])
             {
+                print("Adj: " + adjCard.name + " child: " + adjCardChildren[minIndex] + " card: " + transform.name +
+                    " child: " + children[i]);
                 DestroyAdjPiece(adjCard.name, adjCardChildren, adjCardChildrenColors, minIndex);
                 DestroyAdjPiece(i);
             }
         }
 
-        //CheckAdjPieces();
-        //CheckAdjPieces();
+        CheckAdjPieces(children);
+        CheckAdjPieces(adjCardChildren);
     }
 
     void CalculateMinDist()
@@ -298,16 +301,22 @@ public class Merge : MonoBehaviour
             isHorizontal = true;
             isVertical = true;
 
+
+            if (childList.Count > 1 && (positionI.x == 0 || positionI.y == 0)) continue;
+            else if (childList.Count == 1 && (positionI.x == 0 && positionI.y == 0)) continue;
+
+
+
             for (int j = 0; j < childList.Count; j++)
             {
                 Vector3 positionJ = childList[j].localPosition;
 
-                if (positionJ.x == 0 && childList.Count == 1)
+                if (childList.Count == 1 && positionJ.x == 0 && positionJ.y != 0)
                 {
                     MergePieces(childList[j], true);
                     return;
                 }
-                else if (positionJ.y == 0 && childList.Count == 1)
+                else if (childList.Count == 1 && positionJ.y == 0 && positionJ.x != 0)
                 {
                     MergePieces(childList[j], false);
                     return;
@@ -323,15 +332,15 @@ public class Merge : MonoBehaviour
                 }
             }
 
-            if(isVertical)
+            print("Adj: " + childList[i].parent.name + " child: " + childList[i].name + " card: " + transform.name);
+            print("Vert: " + isVertical + " Hori: " + isHorizontal);
+            if (isVertical)
             {
                 MergePieces(childList[i], true);
-                return;
             }
             else if(isHorizontal)
             {
                 MergePieces(childList[i], false);
-                return;
             }
         }
     }
