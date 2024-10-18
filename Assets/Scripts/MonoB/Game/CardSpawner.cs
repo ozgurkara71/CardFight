@@ -26,18 +26,22 @@ public class CardSpawner : MonoBehaviour
     //GameObject piece;
     int cardNumber = 0;
     int pieceCount = 4;
+    float gapBetweenPieces = 0.03f;
     // store cards' positions to check the other cards' positions, avoid generate same sandom points and
     // store the level's position informations.
     Dictionary<GameObject, Vector3> cardPositions = new Dictionary<GameObject, Vector3>();
     // store piece's colors to add to ScriptableObject to use again when the scene is reloaded
     Dictionary<string, List<Color>> pieceColors = new Dictionary<string, List<Color>>();
-    Dictionary<string, List<Transform>> children = new Dictionary<string, List<Transform>>();
+    Dictionary<string, List<Transform>> cardChildren = new Dictionary<string, List<Transform>>();
 
 
 
     public Dictionary<GameObject, Vector3> CardPositions {  get { return cardPositions; } }
-    public List<Transform> GetChildren(string cardName) { return children[cardName]; }
+    public List<Transform> GetChildren(string cardName) { return cardChildren[cardName]; }
+    public void SetChildren(string cardName, List<Transform> newChildList) { cardChildren[cardName] = newChildList; }
     public List<Color> GetPieceColors(string cardName) { return pieceColors[cardName]; }
+    public void SetPieceColors(string cardName, List<Color> newColors) { pieceColors[cardName] = newColors; }
+    public float GetGapBetweenPieces() {  return gapBetweenPieces; }
     //public float CardLocalY { get { return cardLocalY; } }
     private void Start()
     {
@@ -60,7 +64,6 @@ public class CardSpawner : MonoBehaviour
         // those variables slides pieces a bit from right to left and from up to down
         // and saves card's pivot and center 
         float slideUnitX = 0, slideUnitY = 0;
-        float gapBetweenPieces = 0.03f; 
         GameObject piece;
 
         card.transform.SetParent(cardParent);
@@ -129,7 +132,7 @@ public class CardSpawner : MonoBehaviour
 
         // asagidakini duzenlemen gerekecek depolama isini yaparken
         pieceColors.Add(card.name, randomColors.ToList());
-        children.Add(card.name, pieceList);
+        cardChildren.Add(card.name, pieceList);
         card.AddComponent<Merge>();
         card.transform.localPosition = position;
     }
