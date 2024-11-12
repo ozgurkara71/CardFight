@@ -6,9 +6,9 @@ public class SOHandler : MonoBehaviour
     // file at the end of the path must have correct extension. For example if we are Instantiating
     // (or CreateInstancing for SOs) animation, that extension is .anim 
     // below directory must be created before create SO instance
-    string cardAssetPath = "Assets/SO/Cards/";
+    private string _cardAssetPath = "Assets/SO/Cards/";
 
-    void Start()
+    private void Start()
     {
         SOInstance();
     }
@@ -21,18 +21,18 @@ public class SOHandler : MonoBehaviour
 
         // DIKKAT! AssetDatabase buildde cagrilamiyor
 
-        Card cardFields;
-        cardAssetPath = "Assets/SO/Cards/CardFields.asset";
-        cardFields = AssetDatabase.LoadAssetAtPath<Card>(cardAssetPath);
-        if (cardFields == null)
+        Card _cardFields;
+        _cardAssetPath = "Assets/SO/Cards/CardFields.asset";
+        _cardFields = AssetDatabase.LoadAssetAtPath<Card>(_cardAssetPath);
+        if (_cardFields == null)
         {
             // Create and save ScriptableObject because it doesn't exist yet
-            cardFields = ScriptableObject.CreateInstance<Card>();
-            cardFields.CardColors.Add(Color.magenta);
-            cardFields.CardColors.Add(Color.green);
-            cardFields.CardColors.Add(Color.blue);
-            cardFields.CardColors.Add(Color.cyan);
-            AssetDatabase.CreateAsset(cardFields, cardAssetPath);
+            _cardFields = ScriptableObject.CreateInstance<Card>();
+            _cardFields.CardColors.Add(Color.magenta);
+            _cardFields.CardColors.Add(Color.green);
+            _cardFields.CardColors.Add(Color.blue);
+            _cardFields.CardColors.Add(Color.cyan);
+            AssetDatabase.CreateAsset(_cardFields, _cardAssetPath);
         }
 
         /*
