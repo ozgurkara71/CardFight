@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
-using UnityEngine.UIElements;
 
 public class Merge : MonoBehaviour
 {
@@ -10,36 +9,93 @@ public class Merge : MonoBehaviour
 
     // store frequently used informations
     // asagidakine gerek olmayabilir. Sonucta kendi cocuklari aras... diger kartlarla arasindaki iliski? 
-    Dictionary<GameObject, Vector3> cardPositions = new Dictionary<GameObject, Vector3>();
-    CardSpawner cardSpawner;
-    List<Transform> children = new List<Transform>();
-    List<Color> childrenColors = new List<Color>();
-    Vector3 transformPos;
+    private Dictionary<GameObject, Vector3> _cardPositions = new Dictionary<GameObject, Vector3>();
+    private CardSpawner _cardSpawner;
+    private List<Transform> _children = new List<Transform>();
+    private List<Color> _childrenColors = new List<Color>();
+    private Vector3 _transformPos;
     // yukardaki degiskenleri local yap
 
-    void Start()
+    private void Start()
     {
-        cardSpawner = FindObjectOfType<CardSpawner>();
+        _cardSpawner = FindObjectOfType<CardSpawner>();
 
-        transformPos = transform.position;
+        _transformPos = transform.position;
         //foreach (Transform c in transform.GetComponentsInChildren<Transform>()) children.Add(c);
-        cardPositions = cardSpawner.CardPositions;
+        _cardPositions = _cardSpawner.CardPositions;
         // asagiyi optimize et
-        if(!cardPositions.ContainsKey(transform.gameObject)) 
-            cardPositions.Add(transform.gameObject, transform.localPosition);
+        if(!_cardPositions.ContainsKey(transform.gameObject)) 
+            _cardPositions.Add(transform.gameObject, transform.localPosition);
         // find transform name as key in dict and assign it's values to list
-        children = cardSpawner.GetChildren(transform.name);
-        childrenColors = cardSpawner.GetPieceColors(transform.name);
+        _children = _cardSpawner.GetChildren(transform.name);
+        _childrenColors = _cardSpawner.GetPieceColors(transform.name);
+
+        FindAdjPieces();
 
         //CheckAdjPieces();
-        FindAdjPieces();
-        FindAdjCards();
+
+        //
+        //FindAdjCards();
     }
 
 
     void Update()
     {
-        
+
+    }
+
+    public void DestroyAdjPiece(int _adjIndex)
+    {
+        // pop piece and its' color first and destroy it
+        var _child = _children[_adjIndex];
+        _children.RemoveAt(_adjIndex);
+        _childrenColors.RemoveAt(_adjIndex);
+
+        //
+        _cardSpawner.SetChildren(transform.name, _children);
+        _cardSpawner.SetPieceColors(transform.name, _childrenColors);
+
+        _children = _cardSpawner.GetChildren(transform.name);
+        _childrenColors = _cardSpawner.GetPieceColors(transform.name);
+        //
+        Destroy(_child.gameObject);
+    }
+
+    // burayi sor
+    public void DestroyAdjPiece(string _tName, List<Transform> _tChildren, List<Color> _tChildrenColors, int _adjIndex)
+    {
+        var _child = _tChildren[_adjIndex];
+        _tChildren.RemoveAt(_adjIndex);
+        _tChildrenColors.RemoveAt(_adjIndex);
+
+        _cardSpawner.SetChildren(_tName, _tChildren);
+        _cardSpawner.SetPieceColors(_tName, _tChildrenColors);
+        Destroy(_child.gameObject);
+    }
+
+    // same colored child pieces of two cards should destroy each other  
+    void DestroyCard()
+    {
+
+    }
+
+    // same colored child pieces of card should join together and create larger piece
+    public void MergePieces(Transform _child, bool _isVertical)
+    {
+        Vector3 _childLocalPos = _child.localPosition;
+        Vector3 _childLocalScale = _child.localScale;
+        float _gapBetweenCells = _cardSpawner.GetGapBetweenPieces();
+
+        if (_isVertical)
+        {
+            _child.localScale = new Vector3(_childLocalScale.x, _childLocalScale.y * 2 + _gapBetweenCells);
+            _child.localPosition = new Vector3(_childLocalPos.x, 0);
+        }
+        else
+        {
+            _child.localScale = new Vector3(_childLocalScale.x * 2 + _gapBetweenCells, _childLocalScale.y);
+            _child.localPosition = new Vector3(0, _childLocalPos.y);
+        }
     }
 
     /*
@@ -64,26 +120,26 @@ public class Merge : MonoBehaviour
         // transform.pos'lardan nasil kurtulursun
 
         // asagiyi optimize et
-        for(int i = 0; i < children.Count; i++)
+        for(int i = 0; i < _children.Count; i++)
         {
-            Vector3 positionI = children[i].localPosition;
-            for (int j = 0; j < children.Count; j++)
+            Vector3 _positionI = _children[i].localPosition;
+            for (int j = 0; j < _children.Count; j++)
             {
-                Vector3 positionJ = children[j].localPosition;
+                Vector3 _positionJ = _children[j].localPosition;
 
-                if (new Vector3(positionI.x * -1, positionI.y) == positionJ) // horizontal merge
+                if (new Vector3(_positionI.x * -1, _positionI.y) == _positionJ) // horizontal merge
                 {
-                    if (childrenColors[i] == childrenColors[j])
+                    if (_childrenColors[i] == _childrenColors[j])
                     {
-                        MergePieces(children[i], false);
+                        MergePieces(_children[i], false);
                         DestroyAdjPiece(j);
                     }
                 }
-                else if (new Vector3(positionI.x, positionI.y * -1) == positionJ) // vertical merge
+                else if (new Vector3(_positionI.x, _positionI.y * -1) == _positionJ) // vertical merge
                 {
-                    if(childrenColors[i] == childrenColors[j])
+                    if(_childrenColors[i] == _childrenColors[j])
                     {
-                        MergePieces(children[i], true);
+                        MergePieces(_children[i], true);
                         DestroyAdjPiece(j);
                     }
                 }
@@ -113,77 +169,22 @@ public class Merge : MonoBehaviour
         */
     }
 
-    void DestroyAdjPiece(int adjIndex)
-    {
-        // pop piece and its' color first and destroy it
-        var child = children[adjIndex];
-        children.RemoveAt(adjIndex);
-        childrenColors.RemoveAt(adjIndex);
-
-        //
-        cardSpawner.SetChildren(transform.name, children);
-        cardSpawner.SetPieceColors(transform.name, childrenColors);
-
-        children = cardSpawner.GetChildren(transform.name);
-        childrenColors = cardSpawner.GetPieceColors(transform.name);
-        //
-        Destroy(child.gameObject);
-    }
-
-    // burayi sor
-    void DestroyAdjPiece(string tName, List<Transform> tChildren, List<Color> tChildrenColors, int adjIndex)
-    {
-        var child = tChildren[adjIndex];
-        tChildren.RemoveAt(adjIndex);
-        tChildrenColors.RemoveAt(adjIndex);
-
-        cardSpawner.SetChildren(tName, tChildren);
-        cardSpawner.SetPieceColors(tName, tChildrenColors);
-        Destroy(child.gameObject);
-    }
-
-    // same colored child pieces of two cards should destroy each other  
-    void DestroyCard()
-    {
-        
-    }
-
-    // same colored child pieces of card should join together and create larger piece
-    void MergePieces(Transform child, bool isVertical)
-    {
-        Vector3 childLocalPos = child.localPosition;
-        Vector3 childLocalScale = child.localScale;
-        float gapBetweenCells = cardSpawner.GetGapBetweenPieces();
-
-
-        if (isVertical)
-        {
-            child.localScale = new Vector3(childLocalScale.x, childLocalScale.y * 2 + gapBetweenCells);
-            child.localPosition = new Vector3(childLocalPos.x, 0);
-        }
-        else
-        {
-            child.localScale = new Vector3(childLocalScale.x * 2 + gapBetweenCells, childLocalScale.y);
-            child.localPosition = new Vector3(0, childLocalPos.y);
-        }
-    }
-
     void FindAdjCards()
     {
-        Vector3 transformLocalPos = cardPositions[transform.gameObject];
+        Vector3 _transformLocalPos = _cardPositions[transform.gameObject];
 
         // memory problem olmzsa value, key ciftlerinden sozlukler,
         // performans problem olmazsa for ile butun sozlugu dolan (burda cok az sozluk elementimiz var)
 
-        foreach((var key, var value) in cardPositions)
+        foreach((var _key, var _value) in _cardPositions)
         {
             // check left side of the card--
-            if (value == new Vector3(transformLocalPos.x - 1, transformLocalPos.y) ||
-                value == new Vector3(transformLocalPos.x + 1, transformLocalPos.y) ||
-                value == new Vector3(transformLocalPos.x, transformLocalPos.y - 1) ||
-                value == new Vector3(transformLocalPos.x, transformLocalPos.y + 1))
+            if (_value == new Vector3(_transformLocalPos.x - 1, _transformLocalPos.y) ||
+                _value == new Vector3(_transformLocalPos.x + 1, _transformLocalPos.y) ||
+                _value == new Vector3(_transformLocalPos.x, _transformLocalPos.y - 1) ||
+                _value == new Vector3(_transformLocalPos.x, _transformLocalPos.y + 1))
             {
-                MergeCards(key.transform);
+                MergeCards(_key.transform);
             }
             /*
             else if (value == new Vector3(transformLocalPos.x, transformLocalPos.y - 1) ||
@@ -195,153 +196,245 @@ public class Merge : MonoBehaviour
         }
     }
 
-    // if isHorizontal true, this means adj card is at right or left side of the card.
-    //  Check cards' closest vertical pieces to eachother
-    // if isHorizontal false, this means adj card is at upper or lower side of the card.
-    //  Check cards' closest vertical pieces to eachother
-    void MergeCards(Transform adjCard)
+    private void MergeCards(Transform _adjCard)
     {
+        // bu fonksiyonu ve geldigi yeri duzenle
         // en sonda asagidaki listeleri de guncellemeyi unutma
-        List<Transform> adjCardChildren = cardSpawner.GetChildren(adjCard.name);
-        List<Color> adjCardChildrenColors = cardSpawner.GetPieceColors(adjCard.name);
-        int minIndex;
+        List<Transform> _adjCardChildren = _cardSpawner.GetChildren(_adjCard.name);
+        List<Color> _adjCardChildrenColors = _cardSpawner.GetPieceColors(_adjCard.name);
+        int _minIndex;
         // asagidakini duzenle
-        float minSqrDist;
-        // if relative pos negative, adj card is at left or lower side of card, otherwise it is opposite
-        Vector3 relativePos = transform.InverseTransformPoint(adjCard.position);
+        float _minSqrDist;
+        // if relative pos negative, adj card is at left or lower side of card, otherwise it is opposite. 
+        // make calulations for only opposite sides of each cards
+        Vector3 _relativePos = transform.InverseTransformPoint(_adjCard.position);
 
-        for(int i = 0; i < children.Count; i++)
+        for(int i = 0; i < _children.Count; i++)
         {
-            Vector3 childLocalPos = children[i].localPosition;
+            Vector3 _childLocalPos = _children[i].localPosition;
 
-            minSqrDist = float.MaxValue;
-            minIndex = -1;
-            for (int j = 0; j < adjCardChildren.Count; j++)
+            _minSqrDist = float.MaxValue;
+            _minIndex = -1;
+            for (int j = 0; j < _adjCardChildren.Count; j++)
             {
-                Vector3 adjChildLocalPos = adjCardChildren[j].localPosition;
-
-                if (relativePos.x < 0)
+                Vector3 _adjChildLocalPos = _adjCardChildren[j].localPosition;
+                
+                if (_relativePos.x < 0)
                 {
-                    if (childLocalPos.x <= 0 && adjChildLocalPos.x >= 0)
+                    if (_childLocalPos.x <= 0 && _adjChildLocalPos.x >= 0)
                     {
-                        float sqrDist = (adjChildLocalPos - childLocalPos).sqrMagnitude;
-                        if(sqrDist < minSqrDist)
+                        float sqrDist = (_adjChildLocalPos - _childLocalPos).sqrMagnitude;
+                        if(sqrDist < _minSqrDist)
                         {
-                            minSqrDist = sqrDist;
-                            minIndex = j;
+                            _minSqrDist = sqrDist;
+                            _minIndex = j;
                         }
                     }
                 }
-                else if(relativePos.x > 0)
+                else if(_relativePos.x > 0)
                 {
-                    if (childLocalPos.x >= 0 && adjChildLocalPos.x <= 0)
+                    if (_childLocalPos.x >= 0 && _adjChildLocalPos.x <= 0)
                     {
-                        float sqrDist = (adjChildLocalPos - childLocalPos).sqrMagnitude;
-                        if (sqrDist < minSqrDist)
+                        float sqrDist = (_adjChildLocalPos - _childLocalPos).sqrMagnitude;
+                        if (sqrDist < _minSqrDist)
                         {
-                            minSqrDist = sqrDist;
-                            minIndex = j;
+                            _minSqrDist = sqrDist;
+                            _minIndex = j;
                         }
                     }
                 }
-                else if (relativePos.y < 0)
+                else if (_relativePos.y < 0)
                 {
-                    if (childLocalPos.y <= 0 && adjChildLocalPos.y >= 0)
+                    if (_childLocalPos.y <= 0 && _adjChildLocalPos.y >= 0)
                     {
-                        float sqrDist = (adjChildLocalPos - childLocalPos).sqrMagnitude;
-                        if (sqrDist < minSqrDist)
+                        float sqrDist = (_adjChildLocalPos - _childLocalPos).sqrMagnitude;
+                        if (sqrDist < _minSqrDist)
                         {
-                            minSqrDist = sqrDist;
-                            minIndex = j;
+                            _minSqrDist = sqrDist;
+                            _minIndex = j;
                         }
                     }
                 }
-                else if(relativePos.y > 0)
+                else if(_relativePos.y > 0)
                 {
-                    if (childLocalPos.y >= 0 && adjChildLocalPos.y <= 0)
+                    if (_childLocalPos.y >= 0 && _adjChildLocalPos.y <= 0)
                     {
-                        float sqrDist = (adjChildLocalPos - childLocalPos).sqrMagnitude;
-                        if (sqrDist < minSqrDist)
+                        float sqrDist = (_adjChildLocalPos - _childLocalPos).sqrMagnitude;
+                        if (sqrDist < _minSqrDist)
                         {
-                            minSqrDist = sqrDist;
-                            minIndex = j;
+                            _minSqrDist = sqrDist;
+                            _minIndex = j;
                         }
                     }
                 }
             }
 
-            if (minIndex != -1 && childrenColors[i] == adjCardChildrenColors[minIndex])
+            if (_minIndex != -1 && _childrenColors[i] == _adjCardChildrenColors[_minIndex])
             {
-                print("Adj: " + adjCard.name + " child: " + adjCardChildren[minIndex] + " card: " + transform.name +
-                    " child: " + children[i]);
-                DestroyAdjPiece(adjCard.name, adjCardChildren, adjCardChildrenColors, minIndex);
+                print("////////////////////////////////////////////////////////");
+                print("Adj: " + _adjCard.name + " child: " + _adjCardChildren[_minIndex].name + 
+                    " & card: " + transform.name + " child: " + _children[i].name);
+                print("adjCh: " + string.Join(", ", _adjCardChildren));
+                print("chldrn: " + string.Join(", ", _children));
+                //print(" ind: " + i + " minInd: " + minIndex);
+
+                print("---------------------------------------------------");
+
+
+                CheckAdjPieces2(_minIndex, _adjCardChildren, _adjCardChildrenColors);
+                CheckAdjPieces2(i, _children, _childrenColors);
+
+                DestroyAdjPiece(_adjCard.name, _adjCardChildren, _adjCardChildrenColors, _minIndex);
                 DestroyAdjPiece(i);
             }
         }
 
-        CheckAdjPieces(children);
-        CheckAdjPieces(adjCardChildren);
+        //CheckAdjPieces(children);
+        //CheckAdjPieces(adjCardChildren);
     }
 
-    void CalculateMinDist()
-    {
-
-    }
 
     // 
-    void CheckAdjPieces(List<Transform> childList)
+    void CheckAdjPieces(List<Transform> _childList)
     {
-        bool isHorizontal;
-        bool isVertical;
+        bool _isHorizontal;
+        bool _isVertical;
+        int _listCount = _childList.Count;
         
 
-        for (int i = 0; i < childList.Count; i++)
+        for (int i = 0; i < _listCount; i++)
         {
-            Vector3 positionI = childList[i].localPosition;
-            isHorizontal = true;
-            isVertical = true;
+            Vector3 _localPosI = _childList[i].localPosition;
+            _isHorizontal = true;
+            _isVertical = true;
 
-
-            if (childList.Count > 1 && (positionI.x == 0 || positionI.y == 0)) continue;
-            else if (childList.Count == 1 && (positionI.x == 0 && positionI.y == 0)) continue;
-
-
-
-            for (int j = 0; j < childList.Count; j++)
+            // if there are 3 pieces in card and one of them is has got triangle shape:
+            if (_listCount > 1 && (_localPosI.x == 0 || _localPosI.y == 0)) continue;
+            // if there is one piece in card:
+            else if (_listCount == 1 && (_localPosI.x == 0 && _localPosI.y == 0)) continue;
+            // if there is one piece in card and it has got triangle shape, enlarge it: 
+            else if (_listCount == 1 && (_localPosI.x == 0 && _localPosI.y != 0))
             {
-                Vector3 positionJ = childList[j].localPosition;
+                MergePieces(_childList[i], true);
+                return;
+            }
+            else if (_listCount == 1 && (_localPosI.y == 0 && _localPosI.x != 0))
+            {
+                MergePieces(_childList[i], false);
+                return;
+            }
 
-                if (childList.Count == 1 && positionJ.x == 0 && positionJ.y != 0)
-                {
-                    MergePieces(childList[j], true);
-                    return;
-                }
-                else if (childList.Count == 1 && positionJ.y == 0 && positionJ.x != 0)
-                {
-                    MergePieces(childList[j], false);
-                    return;
-                }
+            for (int j = 0; j < _listCount; j++)
+            {
+                Vector3 _localPosJ = _childList[j].localPosition;
 
-                if (new Vector3(positionI.x * -1, positionI.y) == positionJ) // horizontal merge
+                // don't perform horizontal merge if piece has got opposite piece
+                if (new Vector3(_localPosI.x * -1, _localPosI.y) == _localPosJ)
                 {
-                    isVertical = false;
+                    _isVertical = false;
                 }
-                else if (new Vector3(positionI.x, positionI.y * -1) == positionJ) // vertical merge
+                // don't perform vertical merge if piece has got opposite piece
+                else if (new Vector3(_localPosI.x, _localPosI.y * -1) == _localPosJ)
                 {
-                    isHorizontal = false;   
+                    _isHorizontal = false;   
                 }
             }
 
-            print("Adj: " + childList[i].parent.name + " child: " + childList[i].name + " card: " + transform.name);
-            print("Vert: " + isVertical + " Hori: " + isHorizontal);
-            if (isVertical)
+            //print("Adj: " + childList[i].parent.name + " child: " + childList[i].name + " card: " + transform.name);
+            //print("Vert: " + isVertical + " Hori: " + isHorizontal);
+            if (_isVertical || _isHorizontal)
             {
-                MergePieces(childList[i], true);
+                MergePieces(_childList[i], _isVertical);
+                return;
             }
-            else if(isHorizontal)
+            /*
+            if (isVertical || isHorizontal)
+            {
+                MergePieces(childList[i], isVertical);
+                return;
+            }
+            else if (isHorizontal)
             {
                 MergePieces(childList[i], false);
             }
+            */
         }
     }
+
+    //bunlari hep sadelestir
+    private void CheckAdjPieces2(int _index, List<Transform> _childList, List<Color> _childColorList)
+    {
+        Vector3 _chldToDstryLocPos = _childList[_index].localPosition;
+        int _listCount = _childList.Count;
+        Vector3 _siblingLocalPos;
+
+        print("Count: " + _listCount);
+        // adjler olmuyor
+
+        if (_listCount == 1) return;
+
+        /*
+        // if there is one piece in card:
+        else if (listCount == 1 && (chldToDstryLocPos.x == 0 && chldToDstryLocPos.y == 0)) continue;
+        /*
+        // if there is one piece in card and it has got triangle shape, enlarge it: 
+        else if (listCount == 1 && (chldToDstryLocPos.x == 0 && chldToDstryLocPos.y != 0))
+        {
+            MergePieces(childList[i], true);
+            return;
+        }
+        else if (listCount == 1 && (chldToDstryLocPos.y == 0 && chldToDstryLocPos.x != 0))
+        {
+            MergePieces(childList[i], false);
+            return;
+        }
+        */
+
+        for (int i = 0; i < _listCount; i++)
+        {
+            _siblingLocalPos = _childList[i].localPosition;
+
+            if (_index == i) continue;
+
+            // if there are 3 pieces in card and one of them is has got triangle shape:
+            if (_chldToDstryLocPos.x == 0)
+            {
+                if(_chldToDstryLocPos.y * -1 ==  _siblingLocalPos.y || _chldToDstryLocPos.y == _siblingLocalPos.y)
+                {
+                    MergePieces(_childList[i], true);
+                }
+            }
+            else if (_chldToDstryLocPos.y == 0)
+            {
+                if (_chldToDstryLocPos.x * -1 == _siblingLocalPos.x || _chldToDstryLocPos.x == _siblingLocalPos.x)
+                {
+                    MergePieces(_childList[i], false);
+                }
+            }
+
+            // if there are 2 or 4 pieces:
+            if (new Vector3(_chldToDstryLocPos.x, _chldToDstryLocPos.y * -1) == _siblingLocalPos) // vertical merge
+            {
+               
+                print("Prnt: " + _childList[i].parent.name + " chldVert: " + _childList[i].name + " Colr: " + _childColorList[_index]);
+                MergePieces(_childList[i], true);
+                // If this peace has got 3 siblings, that means it has got 2 opposite siblings.
+                // Don't enlarge both.
+                break;
+                //DestroyAdjPiece(j);
+                
+            }
+            else if (new Vector3(_chldToDstryLocPos.x * -1, _chldToDstryLocPos.y) == _siblingLocalPos) // horizontal merge
+            {
+                //
+                
+                print("Prnt: " + _childList[i].parent.name + " chldHori: " + _childList[i].name + " Colr: " + _childColorList[_index]);
+                MergePieces(_childList[i], false);
+                break;
+                //DestroyAdjPiece(j);
+            }
+        }
+    }
+
+
 }

@@ -4,5 +4,5 @@ using UnityEngine;
 
 public abstract class Tile : MonoBehaviour
 {
-    public virtual void HighlightTile(bool isActive) { }    
+    public virtual void HighlightTile(bool _isActive) { }    
 }

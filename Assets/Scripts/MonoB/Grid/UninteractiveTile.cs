@@ -4,18 +4,18 @@ using UnityEngine;
 
 public class UninteractiveTile : Tile
 {
-    [SerializeField] Color baseColor, offsetColor;
-    [SerializeField] SpriteRenderer bgRenderer;
+    [SerializeField] Color _baseColor, _offsetColor;
+    [SerializeField] SpriteRenderer _bgRenderer;
 
-    public void InitializeTile(bool isOffset)
+    public void InitializeTile(bool _isOffset)
     {
-        if(isOffset)
+        if (_isOffset)
         {
-            bgRenderer.color = offsetColor;
+            _bgRenderer.color = _offsetColor;
         }
         else
         {
-            bgRenderer.color = baseColor;
+            _bgRenderer.color = _baseColor;
         }
     }
 }

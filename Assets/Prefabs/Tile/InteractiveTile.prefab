@@ -144,7 +144,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 779fec9b5bb3e2b4f814217c6241eab1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  highlight: {fileID: 9063338505025704134}
+  _highlight: {fileID: 9063338505025704134}
 --- !u!1 &9063338505025704134
 GameObject:
   m_ObjectHideFlags: 0

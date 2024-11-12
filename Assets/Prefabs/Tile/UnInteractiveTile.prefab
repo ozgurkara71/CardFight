@@ -90,6 +90,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4f9d6a5de260853449ec851ee77d8c47, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  baseColor: {r: 0, g: 0, b: 0, a: 1}
-  offsetColor: {r: 0.18867922, g: 0.16091134, b: 0.16091134, a: 1}
-  bgRenderer: {fileID: 2446820179273822110}
+  _baseColor: {r: 0, g: 0, b: 0, a: 1}
+  _offsetColor: {r: 0.11320752, g: 0.101886764, b: 0.101886764, a: 0.972549}
+  _bgRenderer: {fileID: 2446820179273822110}

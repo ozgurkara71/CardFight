@@ -5,11 +5,11 @@ using UnityEngine;
 
 public class InteractiveTile : Tile
 {
-    [SerializeField] GameObject highlight;
+    [SerializeField] GameObject _highlight;
 
-    public override void HighlightTile(bool isActive)
+    public override void HighlightTile(bool _isActive)
     {
-        highlight.SetActive(isActive);
+        _highlight.SetActive(_isActive);
     }
 
     private void OnMouseEnter()
