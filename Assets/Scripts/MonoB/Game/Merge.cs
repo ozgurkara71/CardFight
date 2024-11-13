@@ -4,13 +4,14 @@ using UnityEngine;
 
 public class Merge : MonoBehaviour
 {
+    // WRITE A FRESH MERGE
     // PARCALARI IKI KATINA CIKARDIKTAN SONRA ARAYA gapBetweenPieces i ekle ve hangi eksende uzattiysan o eksendeki 
     // pos degerni sifira esitle
 
     // store frequently used informations
     // asagidakine gerek olmayabilir. Sonucta kendi cocuklari aras... diger kartlarla arasindaki iliski? 
     private Dictionary<GameObject, Vector3> _cardPositions = new Dictionary<GameObject, Vector3>();
-    private CardSpawner _cardSpawner;
+    [SerializeField] private CardSpawner _cardSpawner;
     private List<Transform> _children = new List<Transform>();
     private List<Color> _childrenColors = new List<Color>();
     private Vector3 _transformPos;

@@ -12,8 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a4b08dab170016347afe58aca3b2a786, type: 3}
   m_Name: CardFields
   m_EditorClassIdentifier: 
-  cardColors:
-  - {r: 1, g: 0, b: 1, a: 1}
-  - {r: 0, g: 1, b: 0, a: 1}
-  - {r: 0, g: 0, b: 1, a: 1}
-  - {r: 0, g: 1, b: 1, a: 1}
+  _cardColors:
+  - {r: 0.764151, g: 0, b: 0.5550748, a: 1}
+  - {r: 0.09915004, g: 0.7647059, b: 0, a: 1}
+  - {r: 0, g: 0.1719078, b: 0.7647059, a: 1}
+  - {r: 0.8301887, g: 0.46176323, b: 0.23025987, a: 1}

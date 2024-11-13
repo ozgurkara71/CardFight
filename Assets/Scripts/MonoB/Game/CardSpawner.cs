@@ -10,6 +10,10 @@ public class CardSpawner : MonoBehaviour
     //[SerializeField] Texture2D texture;
     [SerializeField] Sprite sprt;
 
+    [Header("Cards")]
+    [SerializeField] private GameObject _playableCardPrefab;
+    [SerializeField] private GameObject _nonPlayableCardPrefab;
+
     [Header("ScriptableObject")]
     [SerializeField] private LevelData _cardData;
     [SerializeField] private Card _cardFields;
@@ -19,14 +23,14 @@ public class CardSpawner : MonoBehaviour
     private List<int> _usedColorsIndices = new List<int>();
 
     [Header("Grid System")]
-    private GridManager _grid;
+    [SerializeField] private GridManager _grid;
     [SerializeField] private Transform _cardParent;
     // uncle of pieces
     private Transform _uncle;
     //GameObject piece;
     private int _cardNumber = 0;
     private int _pieceCount = 4;
-    private float _gapBetweenPieces = 0.03f;
+    private const float _gapBetweenPieces = 0.03f;
     // store cards' positions to check the other cards' positions, avoid generate same sandom points and
     // store the level's position informations.
     private Dictionary<GameObject, Vector3> _cardPositions = new Dictionary<GameObject, Vector3>();
@@ -45,7 +49,8 @@ public class CardSpawner : MonoBehaviour
     //public float CardLocalY { get { return cardLocalY; } }
     private void Start()
     {
-        _grid = GetComponent<GridManager>();
+        //_grid = GetComponent<GridManager>();
+        // change with tag the following line
         _uncle = _cardParent.GetChild(0);
 
         // if level data exists: 
@@ -63,6 +68,7 @@ public class CardSpawner : MonoBehaviour
         List<Transform> _pieceList = new List<Transform>();
         // those variables slides pieces a bit from right to left and from up to down
         // and saves card's pivot and center 
+        // make const following line
         float _slideUnitX = 0, _slideUnitY = 0;
         GameObject _piece;
 
@@ -70,6 +76,7 @@ public class CardSpawner : MonoBehaviour
         // uncle of pieces is sibling of card (parent of pieces)
         _card.transform.localScale = _uncle.localScale;
 
+        /*
         for (int i = 0; i < _pieceCount; i++)
         {
             _piece = new GameObject("piece" + i.ToString());
@@ -104,36 +111,32 @@ public class CardSpawner : MonoBehaviour
                 _piece.transform.localScale.y - _gapBetweenPieces,
                 _piece.transform.localScale.z - _gapBetweenPieces);
         }
+        */
+
+        for(int i = 0; i < _pieceCount; i++)
+        {
+            Transform _cardPiece = _card.transform.GetChild(i);
+            _cardPiece.gameObject.GetComponent<SpriteRenderer>().color = _randomColors[i];
+            _pieceList.Add(_cardPiece);
+        }
+
         // surda bir yerlerde de yok olma scripti koy(ortak olsun o script).Ayrica collider de ekle. Collider
         // pieceye eklenecek
 
+        // FOLLOWING if STATEMENT IS CLOSED WITH THE UPPER UPPER for LOOP
+        /*
         if (_isPlayable)
         {
-            /*
-            cardLocalY = grid.DropZoneSize + .5f;
-            // find the median of dropZoneHeight and align card
-            if (grid.DropZoneSize % 2 == 0)
-            {
-                // set start position a bit higher from the dropZoneHeight
-                positionVector = new Vector3(grid.DropZoneSize / 2 - 0.5f, cardLocalY, 1f);
-            }
-            else
-            {
-                positionVector = new Vector3(grid.DropZoneSize / 2, cardLocalY, 1f);
-            }
-
-            card.transform.localPosition = positionVector;
-            */
-
             _card.AddComponent<HorizontalMover>();
             Collider2D _coll = _card.AddComponent<BoxCollider2D>();
             _coll.isTrigger = true;
         }
+        */
 
         // asagidakini duzenlemen gerekecek depolama isini yaparken
         _pieceColors.Add(_card.name, _randomColors.ToList());
         _cardChildren.Add(_card.name, _pieceList);
-        _card.AddComponent<Merge>();
+        //_card.AddComponent<Merge>();
         _card.transform.localPosition = _position;
     }
 
@@ -235,7 +238,9 @@ public class CardSpawner : MonoBehaviour
         float _cardLocalY = _grid.DropZoneSize + .5f;
         Vector3 _positionVector;
         Color[] _randomColors = new Color[_pieceCount];
-        GameObject _card = new GameObject(_cardName);
+        //GameObject _card = new GameObject(_cardName);
+        GameObject _card = Instantiate(_playableCardPrefab);
+        _card.name = _cardName;
 
         // find the median of dropZoneHeight and align card
         if (_grid.DropZoneSize % 2 == 0)
@@ -279,7 +284,11 @@ public class CardSpawner : MonoBehaviour
             for (int i = 0; i < _cardCountToInstantiate; i++)
             {
                 _cardName += "card" + _cardNumber.ToString();
-                _card = new GameObject(_cardName);
+                //_card = new GameObject(_cardName);
+                _card = Instantiate(_nonPlayableCardPrefab);
+                // fix following line. It shouldn't be updated each loop. It should be similar to:
+                // _card.name = _cardName + _cardNumber.ToString();
+                _card.name = _cardName;
                 _randomColors = PickRandomPieceColor(false);
                 // if card is non-playable, add it's colors to list to give same colors on the next scene load
                 //pieceColors.Add(card.name, randomColors.ToList());

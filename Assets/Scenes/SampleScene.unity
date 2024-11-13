@@ -453,12 +453,12 @@ MonoBehaviour:
   _dropAreaColor: {r: 0.6509434, g: 0.06386612, b: 0.06386612, a: 1}
   _dropZoneSize: 6
   _infoParent: {fileID: 1793543592}
-  _infoColor: {r: 0.039515823, g: 0.10842281, b: 0.5660378, a: 1}
+  _infoColor: {r: 0.10628474, g: 0.5647059, b: 0.039215673, a: 1}
   _moves: {fileID: 1371781197}
   _target: {fileID: 2027715395}
   _settings: {fileID: 219698361}
   _boosterParent: {fileID: 718365669}
-  _boosterColor: {r: 0.14838824, g: 0.5471698, b: 0.038198628, a: 1}
+  _boosterColor: {r: 0.03921567, g: 0.055837914, b: 0.54901963, a: 1}
   _boosterCount: 4
   _cam: {fileID: 519420031}
 --- !u!4 &964757706
@@ -489,8 +489,11 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   sprt: {fileID: 7482667652216324306, guid: 311925a002f4447b3a28927169b83ea6, type: 3}
+  _playableCardPrefab: {fileID: 8033142438946736221, guid: 0ad687cd5d07bd84da80dc1d39544da4, type: 3}
+  _nonPlayableCardPrefab: {fileID: 4316899622542152348, guid: 72c8e3ac36ccdd544b84e51191a5977e, type: 3}
   _cardData: {fileID: 11400000, guid: c1f30c4b557fa6c4b81522799bea0716, type: 2}
   _cardFields: {fileID: 11400000, guid: 36c26e204f307d84d8a5eebf1270c3d4, type: 2}
+  _grid: {fileID: 964757705}
   _cardParent: {fileID: 718753983}
 --- !u!1 &1371781196
 GameObject:

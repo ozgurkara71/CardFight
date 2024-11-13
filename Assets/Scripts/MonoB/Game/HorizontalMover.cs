@@ -8,8 +8,8 @@ public class HorizontalMover : MonoBehaviour
 
     private bool _isHovering = false;
     private bool _isFirst = true;
-    private GridManager _grid;
-    private CardSpawner _spawner;
+    [SerializeField] private GridManager _grid;
+    [SerializeField] private CardSpawner _spawner;
     private Transform _dropParent;
 
     [SerializeField] private float _verticalSpeed = 2f;
@@ -26,6 +26,7 @@ public class HorizontalMover : MonoBehaviour
         _cardPositions = _spawner.CardPositions;
         _dropParent = _grid.DropZoneTilesParent;
         // fix following line(getchild seems dangerous)
+        // change with tag the following lines
         _startPointX = _dropParent.GetChild(0).position.x;
         _endPointX = _dropParent.GetChild(_grid.DropZoneSize - 1).position.x;
         // gridzone heightleri diger scriptten al
