@@ -15,7 +15,7 @@ public class GridManager : MonoBehaviour
     [SerializeField] private Transform _dropZoneTilesParent;
     [SerializeField] private Color _dropAreaColor;
     [SerializeField] private int _dropZoneSize;
-    private float _gapBetweenCells = 0.06f;
+    private float _gapBetweenCells = 0.06f; // make this const
 
     [Header("Info - Tiles")]
     [SerializeField] private Transform _infoParent;
@@ -28,6 +28,9 @@ public class GridManager : MonoBehaviour
     [SerializeField] private Transform _boosterParent;
     [SerializeField] private Color _boosterColor;
     [SerializeField] private int _boosterCount;
+
+    [Header("PositionHandler")]
+    [SerializeField]  private PositionHandler _positionHandler;
 
     [Header("Camera")]
     [SerializeField] private Camera _cam;
@@ -42,6 +45,7 @@ public class GridManager : MonoBehaviour
         // ...
         // powerups zone calculations
         // ...
+        _positionHandler.InitializeCoordinatesArray(_dropZoneSize, _dropZoneSize);
         GenerateGrid();
     }
 
@@ -90,7 +94,12 @@ public class GridManager : MonoBehaviour
                     _tileInstance.transform.localScale.x - _gapBetweenCells,
                     _tileInstance.transform.localScale.y - _gapBetweenCells,
                     _tileInstance.transform.localScale.z - _gapBetweenCells);
-                _tileInstance.transform.name = "Tile" + j + i;
+                _tileInstance.transform.name = "Tile" + j + i; // delete tthis line
+
+                if(_parent == _dropZoneTilesParent)
+                {
+                    _positionHandler.SetCoordinatesArray((int)i, (int)j, null);
+                }
             }
         }
 

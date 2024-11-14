@@ -38,6 +38,9 @@ public class CardSpawner : MonoBehaviour
     private Dictionary<string, List<Color>> _pieceColors = new Dictionary<string, List<Color>>();
     private Dictionary<string, List<Transform>> _cardChildren = new Dictionary<string, List<Transform>>();
 
+    [Header("PositionHandler")]
+    [SerializeField] private PositionHandler _positionHandler;
+
 
 
     public Dictionary<GameObject, Vector3> CardPositions { get { return _cardPositions; } }
@@ -119,6 +122,12 @@ public class CardSpawner : MonoBehaviour
             _cardPiece.gameObject.GetComponent<SpriteRenderer>().color = _randomColors[i];
             _pieceList.Add(_cardPiece);
         }
+
+        // ADD PLAYABLE CARDS AFTER POSITIONING ON THE PLAYABLE ZONE AND DONT FPRGET THE UPDATE THE CHANGING 
+        // CARD POSITIONS
+        // playable cards are outof bounds of the playable zone
+        if(!_isPlayable)
+            _positionHandler.SetCoordinatesArray((int)_position.x, (int)_position.y, _card);
 
         // surda bir yerlerde de yok olma scripti koy(ortak olsun o script).Ayrica collider de ekle. Collider
         // pieceye eklenecek
@@ -257,6 +266,17 @@ public class CardSpawner : MonoBehaviour
         _cardNumber++;
 
         SpawnCards(true, _card, _randomColors, _positionVector);
+
+        
+        GameObject[, ] _posArr = _positionHandler.GetCoordinatesArray();
+        for(int i = 0; i < 6; i++)
+        {
+            for(int j = 0; j < 6; j++)
+            {
+                Debug.Log("(" + i + ", " + j + "): " + _posArr[i, j]);
+            }
+        }
+        
     }
 
     // initializes non-plyable cards

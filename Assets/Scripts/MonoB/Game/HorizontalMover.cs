@@ -6,21 +6,20 @@ public class HorizontalMover : MonoBehaviour
 {
     // FIX ALL THESE private public THINGS
 
+    private GridManager _grid;
+    private CardSpawner _spawner;
+
+    private Transform _dropParent;
     private bool _isHovering = false;
     private bool _isFirst = true;
-    [SerializeField] private GridManager _grid;
-    [SerializeField] private CardSpawner _spawner;
-    private Transform _dropParent;
-
     [SerializeField] private float _verticalSpeed = 2f;
     private float _startPointX, _endPointX;
     private Dictionary<GameObject, Vector3> _cardPositions;
 
     void Start()
     {
-        // get away from all of these findobjectoftype lines in scripts
-        _grid = FindObjectOfType<GridManager>();
-        _spawner = FindObjectOfType<CardSpawner>();
+        _grid = ScriptManagement.Instance.GetGridManager();
+        _spawner = ScriptManagement.Instance.GetCardSpawner();
 
         // following line must be updated each frame??
         _cardPositions = _spawner.CardPositions;
