@@ -3,8 +3,12 @@ using UnityEngine;
 public class PositionHandler : MonoBehaviour
 {
     //[SerializeField] private GridManager _gridManager;
-    [SerializeField] private GameObject[, ] _coordinates;
+    [SerializeField] private CardElements[, ] _coordinates;
     //private int _dropZoneHeight;
+
+    // hold the playable card while it is at the top of the playable zone
+    private CardElements _playableInstance;
+
 
 
     private void Start()
@@ -13,18 +17,30 @@ public class PositionHandler : MonoBehaviour
         //_coordinates = new GameObject[_dropZoneHeight, _dropZoneHeight];
     }
 
+    // you can init it here
     public void InitializeCoordinatesArray(int i, int j)
     {
-        _coordinates = new GameObject[i, j];
+        _coordinates = new CardElements[i, j];
     }
 
-    public void SetCoordinatesArray(int i, int j, GameObject card)
+    public void SetCoordinatesArray(int i, int j, CardElements _cardScriptInstance)
     {
-        _coordinates[i, j] = card;
+        _coordinates[i, j] = _cardScriptInstance;
     }
 
-    public GameObject[,] GetCoordinatesArray()
+    public CardElements[,] GetCoordinatesArray()
     {
         return _coordinates;
+    }
+
+    // ...???
+    public void SetPlayableInstance(CardElements _cardScriptInstance)
+    {
+        _playableInstance = _cardScriptInstance;
+    }
+
+    public CardElements GetPlayableInstance()
+    {
+        return _playableInstance;
     }
 }

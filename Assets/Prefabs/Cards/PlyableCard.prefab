@@ -242,7 +242,7 @@ SpriteRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_Sprite: {fileID: 7482667652216324306, guid: 311925a002f4447b3a28927169b83ea6, type: 3}
-  m_Color: {r: 0.09915004, g: 0.7647059, b: 0, a: 1}
+  m_Color: {r: 0.8301887, g: 0.46176323, b: 0.23025987, a: 1}
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0
@@ -326,7 +326,7 @@ SpriteRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_Sprite: {fileID: 7482667652216324306, guid: 311925a002f4447b3a28927169b83ea6, type: 3}
-  m_Color: {r: 0, g: 0.1719078, b: 0.7647059, a: 1}
+  m_Color: {r: 0.09915004, g: 0.7647059, b: 0, a: 1}
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0
@@ -347,7 +347,9 @@ GameObject:
   - component: {fileID: 5865247820677205377}
   - component: {fileID: 6462384017484753911}
   - component: {fileID: 8355595174732704841}
+  - component: {fileID: 8285374903423247914}
   - component: {fileID: 1095995039052676965}
+  - component: {fileID: 3921081865644653741}
   m_Layer: 0
   m_Name: PlyableCard
   m_TagString: Untagged
@@ -431,10 +433,33 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 93ee64c7be33b16469f2a2bededaf234, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _grid: {fileID: 0}
-  _spawner: {fileID: 0}
   _verticalSpeed: 2
+--- !u!114 &8285374903423247914
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8033142438946736221}
+  m_Enabled: 0
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7aa307d234a438e4a8fa99be3121ae12, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!114 &1095995039052676965
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8033142438946736221}
+  m_Enabled: 0
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0a2e108b3204a2d47a8569176aac0539, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _cardSpawner: {fileID: 0}
+--- !u!114 &3921081865644653741
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -443,7 +468,16 @@ MonoBehaviour:
   m_GameObject: {fileID: 8033142438946736221}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 0a2e108b3204a2d47a8569176aac0539, type: 3}
+  m_Script: {fileID: 11500000, guid: 490e53a1e763c5e44b08c782a91d791f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _cardSpawner: {fileID: 0}
+  pieces:
+  - {fileID: 4854225197533245206}
+  - {fileID: 3995805963185502001}
+  - {fileID: 1952691761827738320}
+  - {fileID: 2787546572115263540}
+  piecesSpriteRenderers:
+  - {fileID: 6548615093281496686}
+  - {fileID: 7992241962075169259}
+  - {fileID: 6374910354386339484}
+  - {fileID: 1298973221581314903}

@@ -5,7 +5,7 @@ using UnityEngine;
 
 public class InteractiveTile : Tile
 {
-    [SerializeField] GameObject _highlight;
+    [SerializeField] private GameObject _highlight;
 
     public override void HighlightTile(bool _isActive)
     {

@@ -74,7 +74,7 @@ SpriteRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_Sprite: {fileID: 7482667652216324306, guid: 311925a002f4447b3a28927169b83ea6, type: 3}
-  m_Color: {r: 0.8301887, g: 0.46176323, b: 0.23025987, a: 1}
+  m_Color: {r: 0.764151, g: 0, b: 0.5550748, a: 1}
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0
@@ -261,7 +261,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 3452950080437870972}
+  - component: {fileID: -2844212852944302767}
   - component: {fileID: 5015788703780172573}
+  - component: {fileID: -5957649277226342164}
   m_Layer: 0
   m_Name: NonPlayableCard
   m_TagString: Untagged
@@ -288,7 +290,32 @@ Transform:
   - {fileID: 1565980171541980962}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &-2844212852944302767
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4316899622542152348}
+  m_Enabled: 0
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 18a552b52feafd1448a7185e4de392d6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!114 &5015788703780172573
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4316899622542152348}
+  m_Enabled: 0
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0a2e108b3204a2d47a8569176aac0539, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _cardSpawner: {fileID: 0}
+--- !u!114 &-5957649277226342164
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -297,9 +324,19 @@ MonoBehaviour:
   m_GameObject: {fileID: 4316899622542152348}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 0a2e108b3204a2d47a8569176aac0539, type: 3}
+  m_Script: {fileID: 11500000, guid: 490e53a1e763c5e44b08c782a91d791f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  pieces:
+  - {fileID: 2313604773786630710}
+  - {fileID: 1825950444147696466}
+  - {fileID: 252688241227317621}
+  - {fileID: 4848727735052494849}
+  piecesSpriteRenderers:
+  - {fileID: 5381429378468142184}
+  - {fileID: 6314445795872995883}
+  - {fileID: 5500510891246650133}
+  - {fileID: 6370791455700930943}
 --- !u!1 &4848727735052494849
 GameObject:
   m_ObjectHideFlags: 0
@@ -374,7 +411,7 @@ SpriteRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_Sprite: {fileID: 7482667652216324306, guid: 311925a002f4447b3a28927169b83ea6, type: 3}
-  m_Color: {r: 0.764151, g: 0, b: 0.5550748, a: 1}
+  m_Color: {r: 0.09915004, g: 0.7647059, b: 0, a: 1}
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0

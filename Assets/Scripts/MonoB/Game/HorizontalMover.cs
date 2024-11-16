@@ -105,8 +105,8 @@ public class HorizontalMover : MonoBehaviour
                 _doesContains = true;
             }
         }
-        Debug.Log("-----------------------------------------------------------------------");
-        Debug.Log("next: " + _nextLocalPos.ToString("f8") + " doesContains: " + _doesContains); 
+        //Debug.Log("-----------------------------------------------------------------------");
+        //Debug.Log("next: " + _nextLocalPos.ToString("f8") + " doesContains: " + _doesContains); 
         if(!_doesContains && _nextLocalPos.y >= 0)
         {
             // verticalSpeed * Time.deltaTime * Vector3.down is faster than Vector3.down * verticalSpeed * Time.deltaTime

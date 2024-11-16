@@ -11,8 +11,13 @@ public class CardSpawner : MonoBehaviour
     [SerializeField] Sprite sprt;
 
     [Header("Cards")]
-    [SerializeField] private GameObject _playableCardPrefab;
-    [SerializeField] private GameObject _nonPlayableCardPrefab;
+    //[SerializeField] private PlayableCard _playableCard;
+    //[SerializeField] private NonPlayableCard _nonPlayableCard;
+    [SerializeField] private CardElements _playableCardElements;
+    [SerializeField] private CardElements _nonePlayableCardElements;
+    // does following lines necessary
+    private GameObject _playableCardPrefab;
+    private GameObject _nonPlayableCardPrefab;
 
     [Header("ScriptableObject")]
     [SerializeField] private LevelData _cardData;
@@ -52,6 +57,9 @@ public class CardSpawner : MonoBehaviour
     //public float CardLocalY { get { return cardLocalY; } }
     private void Start()
     {
+
+        _playableCardPrefab = _playableCardElements.gameObject;
+        _nonPlayableCardPrefab = _nonePlayableCardElements.gameObject;
         //_grid = GetComponent<GridManager>();
         // change with tag the following line
         _uncle = _cardParent.GetChild(0);
@@ -66,7 +74,7 @@ public class CardSpawner : MonoBehaviour
         InitPlayableCards();
     }
 
-    private void SpawnCards(bool _isPlayable, GameObject _card, Color[] _randomColors, Vector3 _position)
+    private void SpawnCards(bool _isPlayable, CardElements _cardScriptInstance, Color[] _randomColors, Vector3 _position)
     {
         List<Transform> _pieceList = new List<Transform>();
         // those variables slides pieces a bit from right to left and from up to down
@@ -75,9 +83,9 @@ public class CardSpawner : MonoBehaviour
         float _slideUnitX = 0, _slideUnitY = 0;
         GameObject _piece;
 
-        _card.transform.SetParent(_cardParent);
+        _cardScriptInstance.transform.SetParent(_cardParent);
         // uncle of pieces is sibling of card (parent of pieces)
-        _card.transform.localScale = _uncle.localScale;
+        _cardScriptInstance.transform.localScale = _uncle.localScale;
 
         /*
         for (int i = 0; i < _pieceCount; i++)
@@ -116,18 +124,52 @@ public class CardSpawner : MonoBehaviour
         }
         */
 
+        /*
         for(int i = 0; i < _pieceCount; i++)
         {
             Transform _cardPiece = _card.transform.GetChild(i);
             _cardPiece.gameObject.GetComponent<SpriteRenderer>().color = _randomColors[i];
             _pieceList.Add(_cardPiece);
         }
+        */
+
+        int i = 0;
+        foreach (SpriteRenderer pieceRenderer in _cardScriptInstance.piecesSpriteRenderers)
+        {
+            pieceRenderer.color = _randomColors[i];
+            i++;
+        }
+        /*
+        if(_isPlayable)
+        {
+            foreach (SpriteRenderer pieceRenderer in _playableCardElements.piecesSpriteRenderers)
+            {
+                pieceRenderer.color = _randomColors[i];
+                i++;
+            }
+        }
+        else
+        {
+            foreach (SpriteRenderer pieceRenderer in _nonePlayableCardElements.piecesSpriteRenderers)
+            {
+                pieceRenderer.color = _randomColors[i];
+                i++;
+            }
+
+            // ADD PLAYABLE CARDS AFTER POSITIONING ON THE PLAYABLE ZONE AND DONT FPRGET THE UPDATE THE CHANGING 
+            // CARD POSITIONS
+            // playable cards are outof bounds of the playable zone
+            _positionHandler.SetCoordinatesArray((int)_position.x, (int)_position.y, _cardScriptInstance);
+        }
+        */
 
         // ADD PLAYABLE CARDS AFTER POSITIONING ON THE PLAYABLE ZONE AND DONT FPRGET THE UPDATE THE CHANGING 
         // CARD POSITIONS
         // playable cards are outof bounds of the playable zone
-        if(!_isPlayable)
-            _positionHandler.SetCoordinatesArray((int)_position.x, (int)_position.y, _card);
+        if (!_isPlayable)
+            _positionHandler.SetCoordinatesArray((int)_position.x, (int)_position.y, _cardScriptInstance);
+        else
+            _positionHandler.SetPlayableInstance(_cardScriptInstance);
 
         // surda bir yerlerde de yok olma scripti koy(ortak olsun o script).Ayrica collider de ekle. Collider
         // pieceye eklenecek
@@ -143,10 +185,10 @@ public class CardSpawner : MonoBehaviour
         */
 
         // asagidakini duzenlemen gerekecek depolama isini yaparken
-        _pieceColors.Add(_card.name, _randomColors.ToList());
-        _cardChildren.Add(_card.name, _pieceList);
+        _pieceColors.Add(_cardScriptInstance.gameObject.name, _randomColors.ToList());
+        _cardChildren.Add(_cardScriptInstance.gameObject.name, _pieceList);
         //_card.AddComponent<Merge>();
-        _card.transform.localPosition = _position;
+        _cardScriptInstance.transform.localPosition = _position;
     }
 
     Color[] PickRandomPieceColor(bool _isPlayable)
@@ -248,8 +290,10 @@ public class CardSpawner : MonoBehaviour
         Vector3 _positionVector;
         Color[] _randomColors = new Color[_pieceCount];
         //GameObject _card = new GameObject(_cardName);
-        GameObject _card = Instantiate(_playableCardPrefab);
-        _card.name = _cardName;
+        //GameObject _card = Instantiate(_playableCardPrefab);
+        //_card.name = _cardName;
+        CardElements _playableCardScriptInstance = Instantiate(_playableCardElements);
+        _playableCardScriptInstance.gameObject.name = _cardName;
 
         // find the median of dropZoneHeight and align card
         if (_grid.DropZoneSize % 2 == 0)
@@ -265,18 +309,30 @@ public class CardSpawner : MonoBehaviour
         _randomColors = PickRandomPieceColor(false);
         _cardNumber++;
 
-        SpawnCards(true, _card, _randomColors, _positionVector);
+        //SpawnCards(true, _card, _randomColors, _positionVector);
+        SpawnCards(true, _playableCardScriptInstance, _randomColors, _positionVector);
 
-        
-        GameObject[, ] _posArr = _positionHandler.GetCoordinatesArray();
+        /*
+        CardElements[, ] _posArr = _positionHandler.GetCoordinatesArray();
         for(int i = 0; i < 6; i++)
         {
             for(int j = 0; j < 6; j++)
             {
+                Debug.Log("_____________________________________________");
                 Debug.Log("(" + i + ", " + j + "): " + _posArr[i, j]);
+                if (_posArr[i, j] != null)
+                {
+                    foreach (SpriteRenderer sprtRend in _posArr[i, j].piecesSpriteRenderers)
+                    {
+                        Debug.Log(sprtRend.color.ToHexString());
+                    }
+                }
+                Debug.Log("_____________________________________________");
             }
         }
+        */
         
+
     }
 
     // initializes non-plyable cards
@@ -288,6 +344,7 @@ public class CardSpawner : MonoBehaviour
         //Dictionary<string, List<Color>> pieceColorsToStore = new Dictionary<string, List<Color>>();
         Color[] _randomColors = new Color[_pieceCount];
         GameObject _card;
+        CardElements _cardScriptInstance;
         // asagidakine gerek var mi sor
         //bool isPlayable = false;
         /*
@@ -304,8 +361,11 @@ public class CardSpawner : MonoBehaviour
             for (int i = 0; i < _cardCountToInstantiate; i++)
             {
                 _cardName += "card" + _cardNumber.ToString();
-                //_card = new GameObject(_cardName);
-                _card = Instantiate(_nonPlayableCardPrefab);
+                // -------_card = new GameObject(_cardName);
+                //_card = Instantiate(_nonPlayableCardPrefab);
+                _cardScriptInstance = Instantiate(_nonePlayableCardElements);
+                _card = _cardScriptInstance.gameObject;
+
                 // fix following line. It shouldn't be updated each loop. It should be similar to:
                 // _card.name = _cardName + _cardNumber.ToString();
                 _card.name = _cardName;
@@ -313,7 +373,8 @@ public class CardSpawner : MonoBehaviour
                 // if card is non-playable, add it's colors to list to give same colors on the next scene load
                 //pieceColors.Add(card.name, randomColors.ToList());
                 _randomPos = PickRandomCoordinate(_card);
-                SpawnCards(false, _card, _randomColors, _randomPos);
+                //SpawnCards(false, _card, _randomColors, _randomPos);
+                SpawnCards(false, _cardScriptInstance, _randomColors, _randomPos);
                 _cardName = "";
                 _cardNumber++;
             }
@@ -329,7 +390,7 @@ public class CardSpawner : MonoBehaviour
         }
     }
 
-
+    /*
     void GetCardDataFromMemory(Dictionary<GameObject, Vector3> _positionsFromMemory,
         Dictionary<string, Color[]> _pieceColorsFromMemory)
     {
@@ -345,7 +406,7 @@ public class CardSpawner : MonoBehaviour
             SpawnCards(false, _key, _pieceColorsFromMemory[_key.name], _pos);
         }
     }
-
+    */
     // ???
     void StoreCardData()
     {

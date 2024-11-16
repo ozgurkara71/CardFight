@@ -11,6 +11,7 @@ public class ScriptManagement : MonoBehaviour
     [SerializeField] private GridManager _gridManager;
     [SerializeField] private CardSpawner _cardSpawner;
     [SerializeField] private PositionHandler _positionHandler;
+    //[SerializeField] private CardElements _cardElements;
 
     // Singleton design pattern:
     private void Awake()
@@ -31,6 +32,8 @@ public class ScriptManagement : MonoBehaviour
 
     public GridManager GetGridManager() { return _gridManager; }
     public CardSpawner GetCardSpawner() { return _cardSpawner; }
+    public PositionHandler GetPositionHandler() { return _positionHandler; }
+    //public CardElements GetCardElements() { return _cardElements; }
 
 
 }
