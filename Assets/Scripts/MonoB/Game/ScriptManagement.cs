@@ -12,6 +12,7 @@ public class ScriptManagement : MonoBehaviour
     [SerializeField] private CardSpawner _cardSpawner;
     [SerializeField] private PositionHandler _positionHandler;
     //[SerializeField] private CardElements _cardElements;
+    [SerializeField] private JoinCards _joinCards;
 
     // Singleton design pattern:
     private void Awake()
@@ -34,6 +35,7 @@ public class ScriptManagement : MonoBehaviour
     public CardSpawner GetCardSpawner() { return _cardSpawner; }
     public PositionHandler GetPositionHandler() { return _positionHandler; }
     //public CardElements GetCardElements() { return _cardElements; }
+    public JoinCards GetJoinCards() { return _joinCards; }
 
 
 }

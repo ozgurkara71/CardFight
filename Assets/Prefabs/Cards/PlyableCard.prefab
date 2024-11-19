@@ -433,6 +433,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 93ee64c7be33b16469f2a2bededaf234, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _cardElements: {fileID: 3921081865644653741}
   _verticalSpeed: 2
 --- !u!114 &8285374903423247914
 MonoBehaviour:

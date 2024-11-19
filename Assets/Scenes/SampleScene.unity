@@ -726,6 +726,10 @@ PrefabInstance:
       value: ScriptManager
       objectReference: {fileID: 0}
     - target: {fileID: 266085840926034292, guid: 2b0d47199e4b9ee4392ad8ef5e56cab2, type: 3}
+      propertyPath: _joinCards
+      value: 
+      objectReference: {fileID: 504073801}
+    - target: {fileID: 266085840926034292, guid: 2b0d47199e4b9ee4392ad8ef5e56cab2, type: 3}
       propertyPath: _cardSpawner
       value: 
       objectReference: {fileID: 964757707}

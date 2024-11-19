@@ -5,21 +5,26 @@ using UnityEngine;
 public class HorizontalMover : MonoBehaviour
 {
     // FIX ALL THESE private public THINGS
-
+    private JoinCards _joinCards;
+    private CardElements _playableCardInstance;
     private GridManager _grid;
     private CardSpawner _spawner;
+    private PositionHandler _positionHandler;
 
     private Transform _dropParent;
     private bool _isHovering = false;
     private bool _isFirst = true;
     [SerializeField] private float _verticalSpeed = 2f;
     private float _startPointX, _endPointX;
+    // replace following with the position handler
     private Dictionary<GameObject, Vector3> _cardPositions;
 
     void Start()
     {
         _grid = ScriptManagement.Instance.GetGridManager();
         _spawner = ScriptManagement.Instance.GetCardSpawner();
+        //_positionHandler = ScriptManagement.Instance.GetPositionHandler();
+        //_joinCards = ScriptManagement.Instance.GetJoinCards();
 
         // following line must be updated each frame??
         _cardPositions = _spawner.CardPositions;
@@ -54,6 +59,7 @@ public class HorizontalMover : MonoBehaviour
             VerticalMovement();
             _isHovering = false;
             _isFirst = false;
+            //_spawner.
         }
         
         else if(!_isFirst)
@@ -68,6 +74,11 @@ public class HorizontalMover : MonoBehaviour
         {
             _isHovering = true;
         }
+    }
+
+    public void SetPlayableCardInstance(CardElements _instance)
+    {
+        _playableCardInstance = _instance;
     }
 
     void HorizontalMovement()
@@ -116,6 +127,10 @@ public class HorizontalMover : MonoBehaviour
         else // if(doesContains)
         {
             transform.localPosition = new Vector3(_nextLocalPos.x, Mathf.Round(_nextLocalPos.y + 1), _nextLocalPos.z);
+            //_positionHandler.SetCoordinatesArray((int)transform.localPosition.x, (int)transform.localPosition.y,
+                //_playableCardInstance);
+            //Debug.Log("Cagir");
+            //_joinCards.TravelCoordinateSystem();
         }
     }
 }

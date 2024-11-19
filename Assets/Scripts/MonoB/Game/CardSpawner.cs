@@ -78,6 +78,58 @@ public class CardSpawner : MonoBehaviour
         InitPlayableCards();
     }
 
+    public void InitPlayableCards()
+    {
+        string _cardName = "card" + _cardNumber.ToString();
+        float _cardLocalY = _grid.DropZoneSize + .5f;
+        Vector3 _positionVector;
+        Color[] _randomColors = new Color[_pieceCount];
+        //GameObject _card = new GameObject(_cardName);
+        //GameObject _card = Instantiate(_playableCardPrefab);
+        //_card.name = _cardName;
+        CardElements _playableCardScriptInstance = Instantiate(_playableCardElements);
+        _playableCardScriptInstance.gameObject.name = _cardName;
+
+        // find the median of dropZoneHeight and align card
+        if (_grid.DropZoneSize % 2 == 0)
+        {
+            // set start position a bit higher from the dropZoneHeight
+            _positionVector = new Vector3(_grid.DropZoneSize / 2 - 0.5f, _cardLocalY, 1f);
+        }
+        else
+        {
+            _positionVector = new Vector3(_grid.DropZoneSize / 2, _cardLocalY, 1f);
+        }
+
+        _randomColors = PickRandomPieceColor(false);
+        _cardNumber++;
+
+        //SpawnCards(true, _card, _randomColors, _positionVector);
+        SpawnCards(true, _playableCardScriptInstance, _randomColors, _positionVector);
+
+        /*
+        CardElements[, ] _posArr = _positionHandler.GetCoordinatesArray();
+        for(int i = 0; i < 6; i++)
+        {
+            for(int j = 0; j < 6; j++)
+            {
+                Debug.Log("_____________________________________________");
+                Debug.Log("(" + i + ", " + j + "): " + _posArr[i, j]);
+                if (_posArr[i, j] != null)
+                {
+                    foreach (SpriteRenderer sprtRend in _posArr[i, j].piecesSpriteRenderers)
+                    {
+                        Debug.Log(sprtRend.color.ToHexString());
+                    }
+                }
+                Debug.Log("_____________________________________________");
+            }
+        }
+        */
+
+
+    }
+
     private void SpawnCards(bool _isPlayable, CardElements _cardScriptInstance, Color[] _randomColors, Vector3 _position)
     {
         List<Transform> _pieceList = new List<Transform>();
@@ -285,58 +337,6 @@ public class CardSpawner : MonoBehaviour
             }
         }
         return _randomPos;
-    }
-
-    void InitPlayableCards()
-    {
-        string _cardName = "card" + _cardNumber.ToString();
-        float _cardLocalY = _grid.DropZoneSize + .5f;
-        Vector3 _positionVector;
-        Color[] _randomColors = new Color[_pieceCount];
-        //GameObject _card = new GameObject(_cardName);
-        //GameObject _card = Instantiate(_playableCardPrefab);
-        //_card.name = _cardName;
-        CardElements _playableCardScriptInstance = Instantiate(_playableCardElements);
-        _playableCardScriptInstance.gameObject.name = _cardName;
-
-        // find the median of dropZoneHeight and align card
-        if (_grid.DropZoneSize % 2 == 0)
-        {
-            // set start position a bit higher from the dropZoneHeight
-            _positionVector = new Vector3(_grid.DropZoneSize / 2 - 0.5f, _cardLocalY, 1f);
-        }
-        else
-        {
-            _positionVector = new Vector3(_grid.DropZoneSize / 2, _cardLocalY, 1f);
-        }
-
-        _randomColors = PickRandomPieceColor(false);
-        _cardNumber++;
-
-        //SpawnCards(true, _card, _randomColors, _positionVector);
-        SpawnCards(true, _playableCardScriptInstance, _randomColors, _positionVector);
-
-        /*
-        CardElements[, ] _posArr = _positionHandler.GetCoordinatesArray();
-        for(int i = 0; i < 6; i++)
-        {
-            for(int j = 0; j < 6; j++)
-            {
-                Debug.Log("_____________________________________________");
-                Debug.Log("(" + i + ", " + j + "): " + _posArr[i, j]);
-                if (_posArr[i, j] != null)
-                {
-                    foreach (SpriteRenderer sprtRend in _posArr[i, j].piecesSpriteRenderers)
-                    {
-                        Debug.Log(sprtRend.color.ToHexString());
-                    }
-                }
-                Debug.Log("_____________________________________________");
-            }
-        }
-        */
-        
-
     }
 
     // initializes non-plyable cards
