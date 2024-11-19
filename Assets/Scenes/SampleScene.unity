@@ -262,6 +262,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _cardSpawner: {fileID: 964757707}
   _positionHandler: {fileID: 964757708}
+  _joinPieces: {fileID: 504073800}
 --- !u!4 &504073802
 Transform:
   m_ObjectHideFlags: 0
@@ -559,6 +560,7 @@ MonoBehaviour:
   _grid: {fileID: 964757705}
   _cardParent: {fileID: 718753983}
   _positionHandler: {fileID: 964757708}
+  _joinCards: {fileID: 504073801}
 --- !u!114 &964757708
 MonoBehaviour:
   m_ObjectHideFlags: 0

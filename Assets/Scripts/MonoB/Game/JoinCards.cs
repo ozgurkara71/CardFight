@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Xml.Linq;
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -7,10 +8,11 @@ public class JoinCards : MonoBehaviour
 {
     [SerializeField] private CardSpawner _cardSpawner;
     [SerializeField] private PositionHandler _positionHandler;
+    [SerializeField] private JoinPieces _joinPieces;
 
     private CardElements[,] _coordinates;
-    private List<GameObject> _transformPieces, _bottomCardPieces, _rightCardPieces, _aboveCardPieces, _leftCardPieces;
-    private List<SpriteRenderer> _transformPiecesSpriteRenderers, _bottomCardPiecesSpriteRenderers, _rightCardPiecesSpriteRenderers,
+    private List<GameObject> _currentCardPieces, _bottomCardPieces, _rightCardPieces, _aboveCardPieces, _leftCardPieces;
+    private List<SpriteRenderer> _currentCardPiecesSpriteRenderers, _bottomCardPiecesSpriteRenderers, _rightCardPiecesSpriteRenderers,
         _aboveCardPiecesSpriteRenderers, _leftCardPiecesSpriteRenderers;
 
     private float _gapBetweenPieces;
@@ -44,6 +46,12 @@ public class JoinCards : MonoBehaviour
     }
 
     // find adjacent pieces of adjacent cards
+
+    // NOTE: If we want to check the left adjacent card of the card, we can just find the left adjacent with the
+    // FindLeftCard method and call FindRightAdjacentPiecesOfCards method with the swapped arguments (put left card
+    // to the place of current card and put current card to the place of right card). Same thing is valid for the 
+    // above and bottom cards.
+
     private void FindAdjacentPieces(CardElements _elements, int i, int j)
     {
         int _lineSize = _coordinates.GetLength(0);
@@ -54,12 +62,13 @@ public class JoinCards : MonoBehaviour
             CardElements _bottomCardElements = FindBottomCard(i, j);
             CardElements _rightCardElements = FindRightCard(i, j, _rowSize);
 
-            _transformPieces = new List<GameObject>(_elements.pieces);
-            _transformPiecesSpriteRenderers = new List<SpriteRenderer>(_elements.piecesSpriteRenderers);
+            _currentCardPieces = new List<GameObject>(_elements.pieces);
+            _currentCardPiecesSpriteRenderers = new List<SpriteRenderer>(_elements.piecesSpriteRenderers);
 
 
             if(_bottomCardElements != null)
             {
+                // are following lines needed
                 _bottomCardPieces = new List<GameObject>(_bottomCardElements.pieces);
                 _bottomCardPiecesSpriteRenderers = new List<SpriteRenderer>(_bottomCardElements.piecesSpriteRenderers);
 
@@ -69,8 +78,10 @@ public class JoinCards : MonoBehaviour
 
             if( _rightCardElements != null)
             {
+                // are following lines needed
                 _rightCardPieces = new List<GameObject>(_rightCardElements.pieces);
                 _rightCardPiecesSpriteRenderers = new List<SpriteRenderer>(_rightCardElements.piecesSpriteRenderers);
+                FindRightAdjacentPiecesOfCards(_elements, _rightCardElements);
             }
         }
     }
@@ -129,10 +140,10 @@ public class JoinCards : MonoBehaviour
     {
         // implement selection sort
 
-        int indexOfCurrentCardPiece = -1;
-        int indexOfBottomAdjPiece = -1;
+        int _indexOfCurrentCardPiece = -1;
+        int _indexOfBottomAdjPiece = -1;
 
-        foreach(GameObject _currentCardPiece in _transformPieces)
+        foreach(GameObject _currentCardPiece in _currentCardPieces)
         {
             Vector3 _localPosCurrentCardPiece = _currentCardPiece.transform.localPosition;
 
@@ -140,353 +151,668 @@ public class JoinCards : MonoBehaviour
             {
                 Vector3 _localPosBottomCardPiece = _bottomAdjPiece.transform.localPosition;
 
-                indexOfCurrentCardPiece = _transformPieces.IndexOf(_currentCardPiece);
-                indexOfBottomAdjPiece = _bottomCardPieces.IndexOf(_bottomAdjPiece);
+                _indexOfCurrentCardPiece = _currentCardPieces.IndexOf(_currentCardPiece);
+                _indexOfBottomAdjPiece = _bottomCardPieces.IndexOf(_bottomAdjPiece);
 
-                if (_localPosCurrentCardPiece.y == 0)
-                {
-                    if(_localPosCurrentCardPiece.x == 0) // the current card consists of one main piece
-                    {
-                        if(_localPosBottomCardPiece.y == 0)
-                        {
-                            if(_localPosBottomCardPiece.x == 0) // the bottom card consists of one main piece
-                            {
-                                //indexOfCurrentCardPiece = _transformPieces.IndexOf(_currentCardPiece);
-                                //indexOfBottomAdjPiece = _bottomCardPieces.IndexOf(_bottomAdjPiece);
-
-                                if (_transformPiecesSpriteRenderers[indexOfCurrentCardPiece].color ==
-                                    _bottomCardPiecesSpriteRenderers[indexOfBottomAdjPiece].color)
-                                {
-                                    Debug.Log("Two one main pieces:");
-                                    Debug.Log(_elements + ": " + _currentCardPiece + _bottomCardElements + 
-                                        ": " + _bottomAdjPiece);
-                                }
-                            }
-                            else if(_localPosBottomCardPiece.x < 0) // the left half of the bottom card
-                            {
-                                if (_transformPiecesSpriteRenderers[indexOfCurrentCardPiece].color ==
-                                    _bottomCardPiecesSpriteRenderers[indexOfBottomAdjPiece].color)
-                                {
-                                    Debug.Log("The left half of bottom and one main piece upper:");
-                                    Debug.Log(_elements + ": " + _currentCardPiece + _bottomCardElements +
-                                        ": " + _bottomAdjPiece);
-                                }
-                            }
-                            else if (_localPosBottomCardPiece.x > 0) // the right half of bottom card
-                            {
-                                if (_transformPiecesSpriteRenderers[indexOfCurrentCardPiece].color ==
-                                    _bottomCardPiecesSpriteRenderers[indexOfBottomAdjPiece].color)
-                                {
-                                    Debug.Log("The right half of bottom and one main piece upper:");
-                                    Debug.Log(_elements + ": " + _currentCardPiece + _bottomCardElements +
-                                        ": " + _bottomAdjPiece);
-                                }
-                            }
-                        }
-                        else if(_localPosBottomCardPiece.y > 0)
-                        {
-                            if(_localPosBottomCardPiece.x == 0) // upper half of the bottom card
-                            {
-                                if (_transformPiecesSpriteRenderers[indexOfCurrentCardPiece].color ==
-                                    _bottomCardPiecesSpriteRenderers[indexOfBottomAdjPiece].color)
-                                {
-                                    Debug.Log("The upper half of bottom and one main piece upper:");
-                                    Debug.Log(_elements + ": " + _currentCardPiece + _bottomCardElements +
-                                        ": " + _bottomAdjPiece);
-                                }
-                            }
-                            else if(_localPosBottomCardPiece.x < 0) // upper left corner of bottom card
-                            {
-                                if (_transformPiecesSpriteRenderers[indexOfCurrentCardPiece].color ==
-                                    _bottomCardPiecesSpriteRenderers[indexOfBottomAdjPiece].color)
-                                {
-                                    Debug.Log("The upper left corner of bottom and one main piece upper:");
-                                    Debug.Log(_elements + ": " + _currentCardPiece + _bottomCardElements +
-                                        ": " + _bottomAdjPiece);
-                                }
-                            }
-                            else if(_localPosBottomCardPiece.x > 0) // upper right corner of bottom card
-                            {
-                                if (_transformPiecesSpriteRenderers[indexOfCurrentCardPiece].color ==
-                                    _bottomCardPiecesSpriteRenderers[indexOfBottomAdjPiece].color)
-                                {
-                                    Debug.Log("The upper right corner of bottom and one main piece upper:");
-                                    Debug.Log(_elements + ": " + _currentCardPiece + _bottomCardElements +
-                                        ": " + _bottomAdjPiece);
-                                }
-                            }
-                        }
-                    }
-                    else if(_localPosCurrentCardPiece.x < 0) // left half of the current card
-                    {
-                        if(_localPosBottomCardPiece.y == 0)
-                        {
-                            if(_localPosBottomCardPiece.x == 0) // bottom card consists of one main piece
-                            {
-                                if (_transformPiecesSpriteRenderers[indexOfCurrentCardPiece].color ==
-                                    _bottomCardPiecesSpriteRenderers[indexOfBottomAdjPiece].color)
-                                {
-                                    Debug.Log("The bottom and left half of the upper:");
-                                    Debug.Log(_elements + ": " + _currentCardPiece + _bottomCardElements +
-                                        ": " + _bottomAdjPiece);
-                                }
-                            }
-                            else if(_localPosBottomCardPiece.x < 0) // left half of the bottom card
-                            {
-                                if (_transformPiecesSpriteRenderers[indexOfCurrentCardPiece].color ==
-                                    _bottomCardPiecesSpriteRenderers[indexOfBottomAdjPiece].color)
-                                {
-                                    Debug.Log("The left half of the bottom and left half of the upper:");
-                                    Debug.Log(_elements + ": " + _currentCardPiece + _bottomCardElements +
-                                        ": " + _bottomAdjPiece);
-                                }
-                            }
-                        }
-                        else if(_localPosBottomCardPiece.y > 0)
-                        {
-                            if(_localPosBottomCardPiece.x == 0) // upper half of the bottom card
-                            {
-                                if (_transformPiecesSpriteRenderers[indexOfCurrentCardPiece].color ==
-                                    _bottomCardPiecesSpriteRenderers[indexOfBottomAdjPiece].color)
-                                {
-                                    Debug.Log("The upper half of the bottom and left half of the upper:");
-                                    Debug.Log(_elements + ": " + _currentCardPiece + _bottomCardElements +
-                                        ": " + _bottomAdjPiece);
-                                }
-                            }
-                            else if(_localPosBottomCardPiece.x < 0) // upper left corner of the bottom card
-                            {
-                                if (_transformPiecesSpriteRenderers[indexOfCurrentCardPiece].color ==
-                                    _bottomCardPiecesSpriteRenderers[indexOfBottomAdjPiece].color)
-                                {
-                                    Debug.Log("The upper left corner of the bottom and left half of the upper:");
-                                    Debug.Log(_elements + ": " + _currentCardPiece + _bottomCardElements +
-                                        ": " + _bottomAdjPiece);
-                                }
-                            }
-                        }
-                    }
-                    else if(_localPosCurrentCardPiece.x > 0) // the right half of the current card
-                    {
-                        if(_localPosBottomCardPiece.y == 0)
-                        {
-                            if(_localPosBottomCardPiece.x == 0) // bottom card consists of one main piece
-                            {
-                                if (_transformPiecesSpriteRenderers[indexOfCurrentCardPiece].color ==
-                                    _bottomCardPiecesSpriteRenderers[indexOfBottomAdjPiece].color)
-                                {
-                                    Debug.Log("The bottom and right half of the upper:");
-                                    Debug.Log(_elements + ": " + _currentCardPiece + _bottomCardElements +
-                                        ": " + _bottomAdjPiece);
-                                }
-                            }
-                            else if(_localPosBottomCardPiece.x > 0) // right haf of the bottom card
-                            {
-                                if (_transformPiecesSpriteRenderers[indexOfCurrentCardPiece].color ==
-                                    _bottomCardPiecesSpriteRenderers[indexOfBottomAdjPiece].color)
-                                {
-                                    Debug.Log("The bottom and right half of the upper:");
-                                    Debug.Log(_elements + ": " + _currentCardPiece + _bottomCardElements +
-                                        ": " + _bottomAdjPiece);
-                                }
-                            }
-                        }
-                        else if(_localPosBottomCardPiece.y > 0)
-                        {
-                            if(_localPosBottomCardPiece.x == 0) // upper half of the bottom card
-                            {
-                                if (_transformPiecesSpriteRenderers[indexOfCurrentCardPiece].color ==
-                                    _bottomCardPiecesSpriteRenderers[indexOfBottomAdjPiece].color)
-                                {
-                                    Debug.Log("The upper half of the bottom and right half of the upper:");
-                                    Debug.Log(_elements + ": " + _currentCardPiece + _bottomCardElements +
-                                        ": " + _bottomAdjPiece);
-                                }
-                            }
-                            else if(_localPosBottomCardPiece.x > 0) // the upper right corner of the bottom card
-                            {
-                                if (_transformPiecesSpriteRenderers[indexOfCurrentCardPiece].color ==
-                                    _bottomCardPiecesSpriteRenderers[indexOfBottomAdjPiece].color)
-                                {
-                                    Debug.Log("The upper right of the bottom and right half of the upper:");
-                                    Debug.Log(_elements + ": " + _currentCardPiece + _bottomCardElements +
-                                        ": " + _bottomAdjPiece);
-                                }
-                            }
-                        }
-                    }
-                }
-                else if(_localPosCurrentCardPiece.y < 0)
-                {
-                    if(_localPosCurrentCardPiece.x == 0) // lower half of the current card
-                    {
-                        if(_localPosBottomCardPiece.y == 0)
-                        {
-                            if(_localPosBottomCardPiece.x == 0) // bottom card consists of one main piece
-                            {
-                                if (_transformPiecesSpriteRenderers[indexOfCurrentCardPiece].color ==
-                                    _bottomCardPiecesSpriteRenderers[indexOfBottomAdjPiece].color)
-                                {
-                                    Debug.Log("The bottom and lower half of the upper:");
-                                    Debug.Log(_elements + ": " + _currentCardPiece + _bottomCardElements +
-                                        ": " + _bottomAdjPiece);
-                                }
-                            }
-                            else if(_localPosBottomCardPiece.x  < 0) // left half oof the bottom card
-                            {
-                                if (_transformPiecesSpriteRenderers[indexOfCurrentCardPiece].color ==
-                                    _bottomCardPiecesSpriteRenderers[indexOfBottomAdjPiece].color)
-                                {
-                                    Debug.Log("The left half of the bottom and lower half of the upper:");
-                                    Debug.Log(_elements + ": " + _currentCardPiece + _bottomCardElements +
-                                        ": " + _bottomAdjPiece);
-                                }
-                            }
-                            else if(_localPosBottomCardPiece.x > 0) // the right half of the bottom card
-                            {
-                                if (_transformPiecesSpriteRenderers[indexOfCurrentCardPiece].color ==
-                                    _bottomCardPiecesSpriteRenderers[indexOfBottomAdjPiece].color)
-                                {
-                                    Debug.Log("The left half of the bottom and lower half of the upper:");
-                                    Debug.Log(_elements + ": " + _currentCardPiece + _bottomCardElements +
-                                        ": " + _bottomAdjPiece);
-                                }
-                            }
-                        }
-                        else if(_localPosBottomCardPiece.y > 0)
-                        {
-                            if(_localPosBottomCardPiece.x == 0) // upper half of the bottom card
-                            {
-                                if (_transformPiecesSpriteRenderers[indexOfCurrentCardPiece].color ==
-                                    _bottomCardPiecesSpriteRenderers[indexOfBottomAdjPiece].color)
-                                {
-                                    Debug.Log("The left half of the bottom and lower half of the upper:");
-                                    Debug.Log(_elements + ": " + _currentCardPiece + _bottomCardElements +
-                                        ": " + _bottomAdjPiece);
-                                }
-                            }
-                            else if(_localPosBottomCardPiece.x < 0) // left upper corner of the bottom card
-                            {
-                                if (_transformPiecesSpriteRenderers[indexOfCurrentCardPiece].color ==
-                                    _bottomCardPiecesSpriteRenderers[indexOfBottomAdjPiece].color)
-                                {
-                                    Debug.Log("The left half of the bottom and lower half of the upper:");
-                                    Debug.Log(_elements + ": " + _currentCardPiece + _bottomCardElements +
-                                        ": " + _bottomAdjPiece);
-                                }
-                            }
-                            else if(_localPosBottomCardPiece.x > 0) // right upper corner of the bottom card
-                            {
-                                if (_transformPiecesSpriteRenderers[indexOfCurrentCardPiece].color ==
-                                    _bottomCardPiecesSpriteRenderers[indexOfBottomAdjPiece].color)
-                                {
-                                    Debug.Log("The right half of the bottom and lower half of the upper:");
-                                    Debug.Log(_elements + ": " + _currentCardPiece + _bottomCardElements +
-                                        ": " + _bottomAdjPiece);
-                                }
-                            }
-                        }
-                    }
-                    else if(_localPosCurrentCardPiece.x < 0) // left lower corner of the current card
-                    {
-                        if(_localPosBottomCardPiece.y == 0)
-                        {
-                            if(_localPosBottomCardPiece.x == 0) // bottom card consists of one main piece
-                            {
-                                if (_transformPiecesSpriteRenderers[indexOfCurrentCardPiece].color ==
-                                    _bottomCardPiecesSpriteRenderers[indexOfBottomAdjPiece].color)
-                                {
-                                    Debug.Log("The bottom and left lower corner of the upper:");
-                                    Debug.Log(_elements + ": " + _currentCardPiece + _bottomCardElements +
-                                        ": " + _bottomAdjPiece);
-                                }
-                            }
-                            else if(_localPosBottomCardPiece.x < 0) // left half of the bottom card
-                            {
-                                if (_transformPiecesSpriteRenderers[indexOfCurrentCardPiece].color ==
-                                    _bottomCardPiecesSpriteRenderers[indexOfBottomAdjPiece].color)
-                                {
-                                    Debug.Log("The left half of the bottom and left lower corner of the upper:");
-                                    Debug.Log(_elements + ": " + _currentCardPiece + _bottomCardElements +
-                                        ": " + _bottomAdjPiece);
-                                }
-                            }
-                        }
-                        else if(_localPosBottomCardPiece.y > 0)
-                        {
-                            if(_localPosBottomCardPiece.x == 0) // upper half of the bottom card
-                            {
-                                if (_transformPiecesSpriteRenderers[indexOfCurrentCardPiece].color ==
-                                    _bottomCardPiecesSpriteRenderers[indexOfBottomAdjPiece].color)
-                                {
-                                    Debug.Log("The left half of the bottom and left lower corner of the upper:");
-                                    Debug.Log(_elements + ": " + _currentCardPiece + _bottomCardElements +
-                                        ": " + _bottomAdjPiece);
-                                }
-                            }
-                            else if(_localPosBottomCardPiece.x < 0) // upper left corner of the bottom card
-                            {
-                                if (_transformPiecesSpriteRenderers[indexOfCurrentCardPiece].color ==
-                                    _bottomCardPiecesSpriteRenderers[indexOfBottomAdjPiece].color)
-                                {
-                                    Debug.Log("The left half of the bottom and left lower corner of the upper:");
-                                    Debug.Log(_elements + ": " + _currentCardPiece + _bottomCardElements +
-                                        ": " + _bottomAdjPiece);
-                                }
-                            }
-                        }
-                    }
-                    else if(_localPosCurrentCardPiece.x > 0) // lower right corner of the current card
-                    {
-                        if(_localPosBottomCardPiece.y == 0)
-                        {
-                            if(_localPosBottomCardPiece.x == 0) // bottom card consists of one main piece
-                            {
-                                if (_transformPiecesSpriteRenderers[indexOfCurrentCardPiece].color ==
-                                    _bottomCardPiecesSpriteRenderers[indexOfBottomAdjPiece].color)
-                                {
-                                    Debug.Log("The bottom and right lower corner of the upper:");
-                                    Debug.Log(_elements + ": " + _currentCardPiece + _bottomCardElements +
-                                        ": " + _bottomAdjPiece);
-                                }
-                            }
-                            else if(_localPosBottomCardPiece.x > 0) // right half of the bottom
-                            {
-                                if (_transformPiecesSpriteRenderers[indexOfCurrentCardPiece].color ==
-                                    _bottomCardPiecesSpriteRenderers[indexOfBottomAdjPiece].color)
-                                {
-                                    Debug.Log("The bottom and right lower corner of the upper:");
-                                    Debug.Log(_elements + ": " + _currentCardPiece + _bottomCardElements +
-                                        ": " + _bottomAdjPiece);
-                                }
-                            }
-                        }
-                        else if(_localPosBottomCardPiece.y > 0)
-                        {
-                            if(_localPosBottomCardPiece.x == 0) // upper half of the bottom card
-                            {
-                                if (_transformPiecesSpriteRenderers[indexOfCurrentCardPiece].color ==
-                                    _bottomCardPiecesSpriteRenderers[indexOfBottomAdjPiece].color)
-                                {
-                                    Debug.Log("The upper half of the bottom and right lower corner of the upper:");
-                                    Debug.Log(_elements + ": " + _currentCardPiece + _bottomCardElements +
-                                        ": " + _bottomAdjPiece);
-                                }
-                            }
-                            else if(_localPosBottomCardPiece.x > 0) // upper right of the bottom card
-                            {
-                                if (_transformPiecesSpriteRenderers[indexOfCurrentCardPiece].color ==
-                                    _bottomCardPiecesSpriteRenderers[indexOfBottomAdjPiece].color)
-                                {
-                                    Debug.Log("The upper half of the bottom and right lower corner of the upper:");
-                                    Debug.Log(_elements + ": " + _currentCardPiece + _bottomCardElements +
-                                        ": " + _bottomAdjPiece);
-                                }
-                            }
-                        }
-                    }
-                }
+                BottomChecks(_elements, _bottomCardElements, _indexOfCurrentCardPiece, _indexOfBottomAdjPiece, 
+                    _currentCardPiece, _localPosCurrentCardPiece, _bottomAdjPiece, _localPosBottomCardPiece);
             }
         }
+    }
+
+    private void BottomChecks(CardElements _elements, CardElements _bottomCardElements, int indexOfCurrentCardPiece, 
+        int indexOfBottomAdjPiece, GameObject _currentCardPiece, Vector3 _localPosCurrentCardPiece, 
+        GameObject _bottomAdjPiece, Vector3 _localPosBottomCardPiece)
+    {
+        // the current card consists of one main piece
+        if (_localPosCurrentCardPiece.y == 0 && _localPosCurrentCardPiece.x == 0)
+        {
+            // the bottom card consists of one main piece
+            if (_localPosBottomCardPiece.y == 0 && _localPosBottomCardPiece.x == 0)
+            {
+                CompareColors(_elements, _currentCardPiece, _currentCardPieces,
+                    indexOfCurrentCardPiece, _bottomCardElements, _bottomAdjPiece,
+                    _rightCardPieces, indexOfBottomAdjPiece);
+            }
+            // the left half of the bottom card
+            else if (_localPosBottomCardPiece.y == 0 && _localPosBottomCardPiece.x < 0)
+            {
+                CompareColors(_elements, _currentCardPiece, _currentCardPieces,
+                    indexOfCurrentCardPiece, _bottomCardElements, _bottomAdjPiece,
+                    _rightCardPieces, indexOfBottomAdjPiece);
+            }
+            // the right half of bottom card
+            else if (_localPosBottomCardPiece.y == 0 && _localPosBottomCardPiece.x > 0)
+            {
+                CompareColors(_elements, _currentCardPiece, _currentCardPieces,
+                    indexOfCurrentCardPiece, _bottomCardElements, _bottomAdjPiece,
+                    _rightCardPieces, indexOfBottomAdjPiece);
+            }
+
+            // upper half of the bottom card
+            else if (_localPosBottomCardPiece.y > 0 && _localPosBottomCardPiece.x == 0)
+            {
+                CompareColors(_elements, _currentCardPiece, _currentCardPieces,
+                    indexOfCurrentCardPiece, _bottomCardElements, _bottomAdjPiece,
+                    _rightCardPieces, indexOfBottomAdjPiece);
+            }
+            // upper left corner of bottom card
+            else if (_localPosBottomCardPiece.y > 0 && _localPosBottomCardPiece.x < 0)
+            {
+                CompareColors(_elements, _currentCardPiece, _currentCardPieces,
+                    indexOfCurrentCardPiece, _bottomCardElements, _bottomAdjPiece,
+                    _rightCardPieces, indexOfBottomAdjPiece);
+            }
+            // upper right corner of bottom card
+            else if (_localPosBottomCardPiece.y > 0 && _localPosBottomCardPiece.x > 0)
+            {
+                CompareColors(_elements, _currentCardPiece, _currentCardPieces,
+                    indexOfCurrentCardPiece, _bottomCardElements, _bottomAdjPiece,
+                    _rightCardPieces, indexOfBottomAdjPiece);
+            }
+
+        }
+        // left half of the current card
+        else if (_localPosCurrentCardPiece.y == 0 && _localPosCurrentCardPiece.x < 0)
+        {
+            // bottom card consists of one main piece
+            if (_localPosBottomCardPiece.y == 0 && _localPosBottomCardPiece.x == 0)
+            {
+                CompareColors(_elements, _currentCardPiece, _currentCardPieces,
+                    indexOfCurrentCardPiece, _bottomCardElements, _bottomAdjPiece,
+                    _rightCardPieces, indexOfBottomAdjPiece);
+            }
+            // left half of the bottom card
+            else if (_localPosBottomCardPiece.y == 0 && _localPosBottomCardPiece.x < 0)
+            {
+                CompareColors(_elements, _currentCardPiece, _currentCardPieces,
+                    indexOfCurrentCardPiece, _bottomCardElements, _bottomAdjPiece,
+                    _rightCardPieces, indexOfBottomAdjPiece);
+            }
+
+            // upper half of the bottom card
+            else if (_localPosBottomCardPiece.y > 0 && _localPosBottomCardPiece.x == 0)
+            {
+                CompareColors(_elements, _currentCardPiece, _currentCardPieces,
+                    indexOfCurrentCardPiece, _bottomCardElements, _bottomAdjPiece,
+                    _rightCardPieces, indexOfBottomAdjPiece);
+            }
+            // upper left corner of the bottom card
+            else if (_localPosBottomCardPiece.y > 0 && _localPosBottomCardPiece.x < 0)
+            {
+                CompareColors(_elements, _currentCardPiece, _currentCardPieces,
+                    indexOfCurrentCardPiece, _bottomCardElements, _bottomAdjPiece,
+                    _rightCardPieces, indexOfBottomAdjPiece);
+            }
+  
+        }
+        // the right half of the current card
+        else if (_localPosCurrentCardPiece.y == 0 && _localPosCurrentCardPiece.x > 0)
+        {
+            // bottom card consists of one main piece
+            if (_localPosBottomCardPiece.y == 0 && _localPosBottomCardPiece.x == 0)
+            {
+                CompareColors(_elements, _currentCardPiece, _currentCardPieces,
+                    indexOfCurrentCardPiece, _bottomCardElements, _bottomAdjPiece,
+                    _rightCardPieces, indexOfBottomAdjPiece);
+            }
+            // right haf of the bottom card
+            else if (_localPosBottomCardPiece.y == 0 && _localPosBottomCardPiece.x > 0)
+            {
+                CompareColors(_elements, _currentCardPiece, _currentCardPieces,
+                    indexOfCurrentCardPiece, _bottomCardElements, _bottomAdjPiece,
+                    _rightCardPieces, indexOfBottomAdjPiece);
+            }
+
+            // upper half of the bottom card
+            else if (_localPosBottomCardPiece.y > 0 && _localPosBottomCardPiece.x == 0)
+            {
+                CompareColors(_elements, _currentCardPiece, _currentCardPieces,
+                    indexOfCurrentCardPiece, _bottomCardElements, _bottomAdjPiece,
+                    _rightCardPieces, indexOfBottomAdjPiece);
+            }
+            // the upper right corner of the bottom card
+            else if (_localPosBottomCardPiece.y > 0 && _localPosBottomCardPiece.x > 0)
+            {
+                CompareColors(_elements, _currentCardPiece, _currentCardPieces,
+                    indexOfCurrentCardPiece, _bottomCardElements, _bottomAdjPiece,
+                    _rightCardPieces, indexOfBottomAdjPiece);
+            }
+
+        }
+
+        // lower half of the current card
+        else if (_localPosCurrentCardPiece.y < 0 && _localPosCurrentCardPiece.x == 0)
+        {
+            // bottom card consists of one main piece
+            if (_localPosBottomCardPiece.y == 0 && _localPosBottomCardPiece.x == 0)
+            {
+                CompareColors(_elements, _currentCardPiece, _currentCardPieces,
+                    indexOfCurrentCardPiece, _bottomCardElements, _bottomAdjPiece,
+                    _rightCardPieces, indexOfBottomAdjPiece);
+            }
+            // left half oof the bottom card
+            else if (_localPosBottomCardPiece.y == 0 && _localPosBottomCardPiece.x < 0)
+            {
+                CompareColors(_elements, _currentCardPiece, _currentCardPieces,
+                    indexOfCurrentCardPiece, _bottomCardElements, _bottomAdjPiece,
+                    _rightCardPieces, indexOfBottomAdjPiece);
+            }
+            // the right half of the bottom card
+            else if (_localPosBottomCardPiece.y == 0 && _localPosBottomCardPiece.x > 0)
+            {
+                CompareColors(_elements, _currentCardPiece, _currentCardPieces,
+                    indexOfCurrentCardPiece, _bottomCardElements, _bottomAdjPiece,
+                    _rightCardPieces, indexOfBottomAdjPiece);
+            }
+
+            // upper half of the bottom card
+            else if (_localPosBottomCardPiece.y > 0 && _localPosBottomCardPiece.x == 0)
+            {
+                CompareColors(_elements, _currentCardPiece, _currentCardPieces,
+                    indexOfCurrentCardPiece, _bottomCardElements, _bottomAdjPiece,
+                    _rightCardPieces, indexOfBottomAdjPiece);
+            }
+            // left upper corner of the bottom card
+            else if (_localPosBottomCardPiece.y > 0 && _localPosBottomCardPiece.x < 0)
+            {
+                CompareColors(_elements, _currentCardPiece, _currentCardPieces,
+                    indexOfCurrentCardPiece, _bottomCardElements, _bottomAdjPiece,
+                    _rightCardPieces, indexOfBottomAdjPiece);
+            }
+            // right upper corner of the bottom card
+            else if (_localPosBottomCardPiece.y > 0 && _localPosBottomCardPiece.x > 0)
+            {
+                CompareColors(_elements, _currentCardPiece, _currentCardPieces,
+                    indexOfCurrentCardPiece, _bottomCardElements, _bottomAdjPiece,
+                    _rightCardPieces, indexOfBottomAdjPiece);
+            }
+
+        }
+        // left lower corner of the current card
+        else if (_localPosCurrentCardPiece.y < 0 && _localPosCurrentCardPiece.x < 0)
+        {
+            // bottom card consists of one main piece
+            if (_localPosBottomCardPiece.y == 0 && _localPosBottomCardPiece.x == 0)
+            {
+                CompareColors(_elements, _currentCardPiece, _currentCardPieces,
+                    indexOfCurrentCardPiece, _bottomCardElements, _bottomAdjPiece,
+                    _rightCardPieces, indexOfBottomAdjPiece);
+            }
+            // left half of the bottom card
+            else if (_localPosBottomCardPiece.y == 0 && _localPosBottomCardPiece.x < 0)
+            {
+                CompareColors(_elements, _currentCardPiece, _currentCardPieces,
+                    indexOfCurrentCardPiece, _bottomCardElements, _bottomAdjPiece,
+                    _rightCardPieces, indexOfBottomAdjPiece);
+            }
+
+            // upper half of the bottom card
+            else if (_localPosBottomCardPiece.y > 0 && _localPosBottomCardPiece.x == 0)
+            {
+                CompareColors(_elements, _currentCardPiece, _currentCardPieces,
+                    indexOfCurrentCardPiece, _bottomCardElements, _bottomAdjPiece,
+                    _rightCardPieces, indexOfBottomAdjPiece);
+            }
+            // upper left corner of the bottom card
+            else if (_localPosBottomCardPiece.y > 0 && _localPosBottomCardPiece.x < 0)
+            {
+                CompareColors(_elements, _currentCardPiece, _currentCardPieces,
+                    indexOfCurrentCardPiece, _bottomCardElements, _bottomAdjPiece,
+                    _rightCardPieces, indexOfBottomAdjPiece);
+            }
+
+        }
+        // lower right corner of the current card
+        else if (_localPosCurrentCardPiece.y < 0 && _localPosCurrentCardPiece.x > 0)
+        {
+            // bottom card consists of one main piece
+            if (_localPosBottomCardPiece.y == 0 && _localPosBottomCardPiece.x == 0)
+            {
+                CompareColors(_elements, _currentCardPiece, _currentCardPieces,
+                    indexOfCurrentCardPiece, _bottomCardElements, _bottomAdjPiece,
+                    _rightCardPieces, indexOfBottomAdjPiece);
+            }
+            // right half of the bottom
+            else if (_localPosBottomCardPiece.y == 0 && _localPosBottomCardPiece.x > 0)
+            {
+                CompareColors(_elements, _currentCardPiece, _currentCardPieces,
+                    indexOfCurrentCardPiece, _bottomCardElements, _bottomAdjPiece,
+                    _rightCardPieces, indexOfBottomAdjPiece);
+            }
+
+            // upper half of the bottom card
+            else if (_localPosBottomCardPiece.y > 0 && _localPosBottomCardPiece.x == 0)
+            {
+                CompareColors(_elements, _currentCardPiece, _currentCardPieces,
+                    indexOfCurrentCardPiece, _bottomCardElements, _bottomAdjPiece,
+                    _rightCardPieces, indexOfBottomAdjPiece);
+            }
+            // upper right of the bottom card
+            else if (_localPosBottomCardPiece.y > 0 && _localPosBottomCardPiece.x > 0)
+            {
+                CompareColors(_elements, _currentCardPiece, _currentCardPieces,
+                    indexOfCurrentCardPiece, _bottomCardElements, _bottomAdjPiece,
+                    _rightCardPieces, indexOfBottomAdjPiece);
+            }
+
+        }
+    }
+
+    private void FindRightAdjacentPiecesOfCards(CardElements _elements, CardElements _rightCardElements)
+    {
+        // implement selection sort
+
+        int _indexOfCurrentCardPiece = -1;
+        int _indexOfRightAdjPiece = -1;
+
+        foreach (GameObject _currentCardPiece in _currentCardPieces)
+        {
+            Vector3 _localPosCurrentCardPiece = _currentCardPiece.transform.localPosition;
+
+            foreach (GameObject _rightAdjPiece in _rightCardPieces)
+            {
+                Vector3 _localPosRightCardPiece = _rightAdjPiece.transform.localPosition;
+
+                _indexOfCurrentCardPiece = _currentCardPieces.IndexOf(_currentCardPiece);
+                _indexOfRightAdjPiece = _rightCardPieces.IndexOf(_rightAdjPiece);
+
+                RightChecks(_elements, _indexOfCurrentCardPiece, _currentCardPiece, _localPosCurrentCardPiece, 
+                            _rightCardElements, _indexOfRightAdjPiece, _rightAdjPiece, _localPosRightCardPiece);
+            }
+        }
+    }
+
+    private void RightChecks( CardElements _elements, int _indexOfCurrentCardPiece, GameObject _currentCardPiece, 
+        Vector3 _localPosCurrentCardPiece, 
+        CardElements _rightCardElements, int _indexOfRightAdjPiece, GameObject _rightAdjPiece, 
+        Vector3 _localPosRightCardPiece)
+    {
+        // the main card consists of one main piece
+        if (_localPosCurrentCardPiece.x == 0 && _localPosCurrentCardPiece.y == 0)
+        {
+            // the right card consists of one main piece
+            if (_localPosRightCardPiece.x == 0 && _localPosRightCardPiece.y == 0)
+            {
+                CompareColors(_elements, _currentCardPiece, _currentCardPieces,
+                    _indexOfCurrentCardPiece, _rightCardElements, _rightAdjPiece,
+                    _rightCardPieces, _indexOfRightAdjPiece);
+            }
+            // the lower half of the right card
+            else if (_localPosRightCardPiece.x == 0 && _localPosRightCardPiece.y < 0)
+            {
+                CompareColors(_elements, _currentCardPiece, _currentCardPieces,
+                    _indexOfCurrentCardPiece, _rightCardElements, _rightAdjPiece,
+                    _rightCardPieces, _indexOfRightAdjPiece);
+            }
+            // the upper half of the right card
+            else if (_localPosRightCardPiece.x == 0 && _localPosRightCardPiece.y > 0)
+            {
+                CompareColors(_elements, _currentCardPiece, _currentCardPieces,
+                    _indexOfCurrentCardPiece, _rightCardElements, _rightAdjPiece,
+                    _rightCardPieces, _indexOfRightAdjPiece);
+            }
+
+
+            // the left half of the right card
+            else if (_localPosRightCardPiece.x < 0 && _localPosRightCardPiece.y == 0)
+            {
+                CompareColors(_elements, _currentCardPiece, _currentCardPieces,
+                    _indexOfCurrentCardPiece, _rightCardElements, _rightAdjPiece,
+                    _rightCardPieces, _indexOfRightAdjPiece);
+            }
+            // the lower left piece of the right card
+            else if (_localPosRightCardPiece.x < 0 && _localPosRightCardPiece.y < 0)
+            {
+                CompareColors(_elements, _currentCardPiece, _currentCardPieces,
+                    _indexOfCurrentCardPiece, _rightCardElements, _rightAdjPiece,
+                    _rightCardPieces, _indexOfRightAdjPiece);
+            }
+            // the upper left piece of the right card
+            else if (_localPosRightCardPiece.x < 0 && _localPosRightCardPiece.y > 0)
+            {
+                CompareColors(_elements, _currentCardPiece, _currentCardPieces,
+                    _indexOfCurrentCardPiece, _rightCardElements, _rightAdjPiece,
+                    _rightCardPieces, _indexOfRightAdjPiece);
+            }
+
+        }
+        // the lower half of the current card
+        else if (_localPosCurrentCardPiece.x == 0 && _localPosCurrentCardPiece.y < 0)
+        {
+            // the right card consists of one main piece
+            if (_localPosRightCardPiece.x == 0 && _localPosRightCardPiece.y == 0)
+            {
+                CompareColors(_elements, _currentCardPiece, _currentCardPieces,
+                    _indexOfCurrentCardPiece, _rightCardElements, _rightAdjPiece,
+                    _rightCardPieces, _indexOfRightAdjPiece);
+            }
+            // the lower half of the right card
+            else if (_localPosRightCardPiece.x == 0 && _localPosRightCardPiece.y < 0)
+            {
+                CompareColors(_elements, _currentCardPiece, _currentCardPieces,
+                    _indexOfCurrentCardPiece, _rightCardElements, _rightAdjPiece,
+                    _rightCardPieces, _indexOfRightAdjPiece);
+            }
+
+            // the left half of the right card
+            else if (_localPosRightCardPiece.x < 0 && _localPosRightCardPiece.y == 0)
+            {
+                CompareColors(_elements, _currentCardPiece, _currentCardPieces,
+                    _indexOfCurrentCardPiece, _rightCardElements, _rightAdjPiece,
+                    _rightCardPieces, _indexOfRightAdjPiece);
+            }
+            // the lower left piece of the right card
+            else if (_localPosRightCardPiece.x < 0 && _localPosRightCardPiece.y < 0)
+            {
+                CompareColors(_elements, _currentCardPiece, _currentCardPieces,
+                    _indexOfCurrentCardPiece, _rightCardElements, _rightAdjPiece,
+                    _rightCardPieces, _indexOfRightAdjPiece);
+            }
+
+        }
+        // the upper half of the current card
+        else if (_localPosCurrentCardPiece.x == 0 && _localPosCurrentCardPiece.y > 0)
+        {
+            // the right card consists of one main piece
+            if (_localPosRightCardPiece.x == 0 && _localPosRightCardPiece.y == 0)
+            {
+                CompareColors(_elements, _currentCardPiece, _currentCardPieces,
+                    _indexOfCurrentCardPiece, _rightCardElements, _rightAdjPiece,
+                    _rightCardPieces, _indexOfRightAdjPiece);
+            }
+            // the upper half of the right card
+            else if (_localPosRightCardPiece.x == 0 && _localPosRightCardPiece.y > 0)
+            {
+                CompareColors(_elements, _currentCardPiece, _currentCardPieces,
+                    _indexOfCurrentCardPiece, _rightCardElements, _rightAdjPiece,
+                    _rightCardPieces, _indexOfRightAdjPiece);
+            }
+
+            // the left half of the right card
+            else if (_localPosRightCardPiece.x < 0 && _localPosRightCardPiece.y == 0)
+            {
+                CompareColors(_elements, _currentCardPiece, _currentCardPieces,
+                    _indexOfCurrentCardPiece, _rightCardElements, _rightAdjPiece,
+                    _rightCardPieces, _indexOfRightAdjPiece);
+            }
+            // the upper left piece of the right card
+            else if (_localPosRightCardPiece.x < 0 && _localPosRightCardPiece.y > 0)
+            {
+                CompareColors(_elements, _currentCardPiece, _currentCardPieces,
+                    _indexOfCurrentCardPiece, _rightCardElements, _rightAdjPiece,
+                    _rightCardPieces, _indexOfRightAdjPiece);
+            }
+
+        }
+
+        // the right half of the current card
+        else if (_localPosCurrentCardPiece.x > 0 && _localPosCurrentCardPiece.y == 0)
+        {
+            // the right card consists of one main piece
+            if (_localPosRightCardPiece.x == 0 && _localPosRightCardPiece.y == 0)
+            {
+                CompareColors(_elements, _currentCardPiece, _currentCardPieces,
+                    _indexOfCurrentCardPiece, _rightCardElements, _rightAdjPiece,
+                    _rightCardPieces, _indexOfRightAdjPiece);
+            }
+            // the lower half of the right card
+            else if (_localPosRightCardPiece.x == 0 && _localPosRightCardPiece.y < 0)
+            {
+                CompareColors(_elements, _currentCardPiece, _currentCardPieces,
+                    _indexOfCurrentCardPiece, _rightCardElements, _rightAdjPiece,
+                    _rightCardPieces, _indexOfRightAdjPiece);
+            }
+            // the upper half of the right card
+            else if (_localPosRightCardPiece.x == 0 && _localPosRightCardPiece.y > 0)
+            {
+                CompareColors(_elements, _currentCardPiece, _currentCardPieces,
+                    _indexOfCurrentCardPiece, _rightCardElements, _rightAdjPiece,
+                    _rightCardPieces, _indexOfRightAdjPiece);
+            }
+
+            // the left half of the right card
+            else if (_localPosRightCardPiece.x < 0 && _localPosRightCardPiece.y == 0)
+            {
+                CompareColors(_elements, _currentCardPiece, _currentCardPieces,
+                    _indexOfCurrentCardPiece, _rightCardElements, _rightAdjPiece,
+                    _rightCardPieces, _indexOfRightAdjPiece);
+            }
+            // the lower left piece of the right card
+            else if (_localPosRightCardPiece.x < 0 && _localPosRightCardPiece.y < 0)
+            {
+                CompareColors(_elements, _currentCardPiece, _currentCardPieces,
+                    _indexOfCurrentCardPiece, _rightCardElements, _rightAdjPiece,
+                    _rightCardPieces, _indexOfRightAdjPiece);
+            }
+            // the upper left piece of the right card
+            else if (_localPosRightCardPiece.x < 0 && _localPosRightCardPiece.y > 0)
+            {
+                CompareColors(_elements, _currentCardPiece, _currentCardPieces,
+                    _indexOfCurrentCardPiece, _rightCardElements, _rightAdjPiece,
+                    _rightCardPieces, _indexOfRightAdjPiece);
+            }
+
+        }
+        // the lower right piece of the current card
+        else if (_localPosCurrentCardPiece.x > 0 && _localPosCurrentCardPiece.y < 0)
+        {
+            // the right card consists of one main piece
+            if (_localPosRightCardPiece.x == 0 && _localPosRightCardPiece.y == 0)
+            {
+                CompareColors(_elements, _currentCardPiece, _currentCardPieces,
+                    _indexOfCurrentCardPiece, _rightCardElements, _rightAdjPiece,
+                    _rightCardPieces, _indexOfRightAdjPiece);
+            }
+            // the lower half of the right card
+            else if (_localPosRightCardPiece.x == 0 && _localPosRightCardPiece.y < 0)
+            {
+                CompareColors(_elements, _currentCardPiece, _currentCardPieces,
+                    _indexOfCurrentCardPiece, _rightCardElements, _rightAdjPiece,
+                    _rightCardPieces, _indexOfRightAdjPiece);
+            }
+
+            // the left half of the right card
+            else if (_localPosRightCardPiece.x < 0 && _localPosRightCardPiece.y == 0)
+            {
+                CompareColors(_elements, _currentCardPiece, _currentCardPieces,
+                    _indexOfCurrentCardPiece, _rightCardElements, _rightAdjPiece,
+                    _rightCardPieces, _indexOfRightAdjPiece);
+            }
+            // the lower left piece of the right card
+            else if (_localPosRightCardPiece.x < 0 && _localPosRightCardPiece.y < 0)
+            {
+                CompareColors(_elements, _currentCardPiece, _currentCardPieces,
+                    _indexOfCurrentCardPiece, _rightCardElements, _rightAdjPiece,
+                    _rightCardPieces, _indexOfRightAdjPiece);
+            }
+
+        }
+        // the upper right piece of the current card
+        else if (_localPosCurrentCardPiece.x > 0 && _localPosCurrentCardPiece.y > 0)
+        {
+            // the right card consists of one main piece
+            if (_localPosRightCardPiece.x == 0 && _localPosRightCardPiece.y == 0)
+            {
+                CompareColors(_elements, _currentCardPiece, _currentCardPieces,
+                    _indexOfCurrentCardPiece, _rightCardElements, _rightAdjPiece,
+                    _rightCardPieces, _indexOfRightAdjPiece);
+            }
+            // the upper half of the right card
+            else if (_localPosRightCardPiece.x == 0 && _localPosRightCardPiece.y > 0)
+            {
+                CompareColors(_elements, _currentCardPiece, _currentCardPieces,
+                    _indexOfCurrentCardPiece, _rightCardElements, _rightAdjPiece,
+                    _rightCardPieces, _indexOfRightAdjPiece);
+            }
+
+            // the left half of the right card
+            else if (_localPosRightCardPiece.x < 0 && _localPosRightCardPiece.y == 0)
+            {
+                CompareColors(_elements, _currentCardPiece, _currentCardPieces,
+                    _indexOfCurrentCardPiece, _rightCardElements, _rightAdjPiece,
+                    _rightCardPieces, _indexOfRightAdjPiece);
+            }
+            // the upper left piece of the right card
+            else if (_localPosRightCardPiece.x < 0 && _localPosRightCardPiece.y > 0)
+            {
+                CompareColors(_elements, _currentCardPiece, _currentCardPieces,
+                    _indexOfCurrentCardPiece, _rightCardElements, _rightAdjPiece,
+                    _rightCardPieces, _indexOfRightAdjPiece);
+            }
+
+        }
+    }
+
+    // it seems like that this spriterenderers arrays is not needed in this method!!!
+    // you should make if condition and use main arrays to deleting operations
+
+    /*
+     (CardElements _elements, GameObject _currentCardPiece, List<GameObject> _currentCardPieceList,
+        List<SpriteRenderer> _currentCardPiecesSpriteRenderers, int _indexOfCurrentCardPiece, 
+        CardElements _adjCardElements, GameObject _adjPiece, List<GameObject> _adjCardPieceList,
+        List<SpriteRenderer> _adjCardPiecesSpriteRenderers,int _indexOfAdjPiece)
+     */
+    private void CompareColors(CardElements _elements, GameObject _currentCardPiece, 
+        List<GameObject> _currentCardPiecesList, int _indexOfCurrentCardPiece, 
+        CardElements _adjCardElements, GameObject _adjPiece, List<GameObject> _adjCardPiecesList,
+        int _indexOfAdjPiece)
+    {
+        //_elements.piecesSpriteRenderers[_indexOfCurrentCardPiece].color ==
+        //_adjCardElements.piecesSpriteRenderers[_indexOfAdjPiece].color
+        // replaced following with the upper line
+        //_currentCardPiecesSpriteRenderers[_indexOfCurrentCardPiece].color ==
+        //_adjCardPiecesSpriteRenderers[_indexOfAdjPiece].color
+        if (_elements.piecesSpriteRenderers[_indexOfCurrentCardPiece].color ==
+            _adjCardElements.piecesSpriteRenderers[_indexOfAdjPiece].color)
+        {
+            //HandleAdjacentPieces(_elements, _currentCardPiece, _currentCardPiecesList);
+            //HandleAdjacentPieces(_adjCardElements, _adjPiece, _adjCardPiecesList);
+            
+
+
+            //Debug.Log(_elements.piecesSpriteRenderers[_indexOfCurrentCardPiece].color ==
+            //_adjCardElements.piecesSpriteRenderers[_indexOfAdjPiece].color);
+
+            Debug.Log(_elements + ": " + _currentCardPiece + " / " + _adjCardElements +
+                ": " + _adjPiece);
+        }
+    }
+
+    private void HandleAdjacentPieces(CardElements _cardElements, GameObject _targetPiece, 
+        List<GameObject> _cardPiecesList)
+    {
+        // create different method for following lines
+        Vector3 _localPosOfTargetPiece = _targetPiece.transform.localPosition;
+        //Vector3 _localPosOfAdjPiece = _adjPiece.transform.localPosition;
+        Vector3 _siblingLocalPos;
+        int _countOfElementsPieces = _cardPiecesList.Count;
+        //int _countAdjElementsPieces = _adjCardElements.pieces.Count;
+
+
+        foreach (GameObject _sibling in _cardPiecesList)
+        {
+            if (_sibling == _targetPiece)
+            {
+                Debug.Log("Buraya geldi: " + _sibling);
+                continue;
+            }
+
+            _siblingLocalPos = _sibling.transform.localPosition;
+
+            if (_countOfElementsPieces == 4) // if there are 4 piecesin card
+            {
+                if (_siblingLocalPos == new Vector3(_localPosOfTargetPiece.x * -1, _localPosOfTargetPiece.y))
+                {
+                    _joinPieces.MergePieces(_sibling, false);
+                    // call DestroyPiece immediate after
+                }
+            }
+            else if (_countOfElementsPieces == 3 && _localPosOfTargetPiece.x == 0)
+            {
+                /*
+                Debug.Log("Ust..." + _cardElements + " - " + _sibling);
+                if (_siblingLocalPos == new Vector3(-1, _localPosOfTargetPiece.y * -1) ||
+                    _siblingLocalPos == new Vector3(1, _localPosOfTargetPiece.y * -1))
+                {
+                    Debug.Log("Alt...");
+                    _joinPieces.MergePieces(_sibling, true);
+                    // call DestroyPiece immediate after
+                }
+                */
+
+                _joinPieces.MergePieces(_sibling, true);
+                // call DestroyPiece immediate after
+            }
+            else if (_countOfElementsPieces == 3 && _localPosOfTargetPiece.y == 0)
+            {
+                /*
+                Debug.Log("Ust...");
+                if (_siblingLocalPos == new Vector3(_localPosOfPiece.x * -1, -1) ||
+                    _siblingLocalPos == new Vector3(_localPosOfPiece.x * -1, 1))
+                {
+                    Debug.Log("Alt...");
+                    _joinPieces.MergePieces(_sibling, false);
+                    // call DestroyPiece for _currentCardPiece immediate after
+                }
+                */
+                // card consists of 3 pieces and rectangular piece (target piece itself) does not come here
+                // target piece must be destroyed and other 2 must be rescaled towards the target piece
+
+                _joinPieces.MergePieces(_sibling, false);
+                // call DestroyPiece for _currentCardPiece immediate after
+            }
+            // if piece to destroy is square not rectangular
+            else if (_countOfElementsPieces == 3 && (_localPosOfTargetPiece.x != 0 && _localPosOfTargetPiece.y != 0))
+            {
+                if (_siblingLocalPos == new Vector3(_localPosOfTargetPiece.x * -1, _localPosOfTargetPiece.y))
+                {
+                    _joinPieces.MergePieces(_sibling, false);
+                    // call DestroyPiece for _currentCardPiece immediate after
+                }
+                else if (_siblingLocalPos == new Vector3(_localPosOfTargetPiece.x, _localPosOfTargetPiece.y * -1))
+                {
+                    _joinPieces.MergePieces(_sibling, true);
+                    // call DestroyPiece for _currentCardPiece immediate after
+                }
+            }
+            else if (_countOfElementsPieces == 2 && _localPosOfTargetPiece.x == 0)
+            {
+                /*
+                if (_siblingLocalPos == new Vector3(0, _localPosOfTargetPiece.y * -1))
+                {
+                    _joinPieces.MergePieces(_sibling, true);
+                    // call DestroyPiece for _currentCardPiece immediate after
+                }
+                */
+
+                _joinPieces.MergePieces(_sibling, true);
+                // call DestroyPiece for _currentCardPiece immediate after
+            }
+            else if(_countOfElementsPieces == 2 && _localPosOfTargetPiece.y == 0)
+            {
+                /*
+                if (_siblingLocalPos == new Vector3(_localPosOfTargetPiece.x * -1, 0))
+                {
+                    _joinPieces.MergePieces(_sibling, false);
+                    // call DestroyPiece for _currentCardPiece immediate after
+                }
+                */
+
+                _joinPieces.MergePieces(_sibling, false);
+                // call DestroyPiece for _currentCardPiece immediate after
+            }
+            else // if _countOfElementsPieces == 1
+            {
+                // destroy card
+                DestroyCard();
+            }
+
+        }
+    }
+
+    private void DestroyCard()
+    {
+
     }
 }

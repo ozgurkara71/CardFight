@@ -31,6 +31,32 @@ public class JoinPieces : MonoBehaviour
         
     }
 
+    public void MergePieces(GameObject _piece, bool _isVertical)
+    {
+        Vector3 _pieceLocalPos = _piece.transform.localPosition;
+        Vector3 _pieceLocalScale = _piece.transform.localScale;
+
+        if (!_isVertical)
+        {
+            _piece.transform.localScale = new Vector3(_pieceLocalScale.x * 2 + _gapBetweenPieces, _pieceLocalScale.y);
+            _piece.transform.localPosition = new Vector3(0, _pieceLocalPos.y);
+        }
+        else // if(_isVertical)
+        {
+            _piece.transform.localScale = new Vector3(_pieceLocalScale.x, _pieceLocalScale.y * 2 + _gapBetweenPieces);
+            _piece.transform.localPosition = new Vector3(_pieceLocalPos.x, 0);
+        }
+    }
+
+    public void DestroyPiece(CardElements _elements, GameObject _piece)
+    {
+        int _indexOfPiece = _elements.pieces.IndexOf(_piece);
+
+        _elements.pieces.RemoveAt(_indexOfPiece);
+        _elements.piecesSpriteRenderers.RemoveAt(_indexOfPiece);
+        Destroy(_piece);
+    }
+
     private void TravelCoordinateSystem()
     {
 
@@ -99,32 +125,5 @@ public class JoinPieces : MonoBehaviour
                 }
             }
         }
-    }
-
-
-    private void MergePieces(GameObject _piece, bool _isVertical)
-    {
-        Vector3 _pieceLocalPos = _piece.transform.localPosition;
-        Vector3 _pieceLocalScale = _piece.transform.localScale;
-
-        if(!_isVertical)
-        {
-            _piece.transform.localScale = new Vector3(_pieceLocalScale.x * 2 + _gapBetweenPieces, _pieceLocalScale.y);
-            _piece.transform.localPosition = new Vector3(0, _pieceLocalPos.y);
-        }
-        else // if(_isVertical)
-        {
-            _piece.transform.localScale = new Vector3(_pieceLocalScale.x, _pieceLocalScale.y * 2 + _gapBetweenPieces);
-            _piece.transform.localPosition = new Vector3(_pieceLocalPos.x, 0);
-        }
-    }
-
-    private void DestroyPiece(CardElements _elements, GameObject _piece)
-    {
-        int _indexOfPiece = _elements.pieces.IndexOf(_piece);
-
-        _elements.pieces.RemoveAt(_indexOfPiece);
-        _elements.piecesSpriteRenderers.RemoveAt(_indexOfPiece);
-        Destroy(_piece);
     }
 }

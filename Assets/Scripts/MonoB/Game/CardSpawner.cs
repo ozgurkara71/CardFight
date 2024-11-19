@@ -46,6 +46,10 @@ public class CardSpawner : MonoBehaviour
     [Header("PositionHandler")]
     [SerializeField] private PositionHandler _positionHandler;
 
+    // i expect an error here. BE CAREFUL
+    [Header("Merge")]
+    [SerializeField] private JoinCards _joinCards;
+
 
 
     public Dictionary<GameObject, Vector3> CardPositions { get { return _cardPositions; } }
