@@ -47,6 +47,8 @@ public class JoinCards : MonoBehaviour
                 FindAdjacentPieces(_elements, i, j);
             }
         }
+
+        if (_hasMatched) TravelCoordinateSystem();
     }
 
     // pos(x, y) = _coordinates[i, j] => (x, y) = (i, j)
@@ -116,27 +118,36 @@ public class JoinCards : MonoBehaviour
             CardElements _bottomCardElements = FindBottomCard(i, j);
             CardElements _rightCardElements = FindRightCard(i, j, _rowSize);
 
-            _currentCardPieces = new List<GameObject>(_elements.pieces);
-            _currentCardPiecesSpriteRenderers = new List<SpriteRenderer>(_elements.piecesSpriteRenderers);
+            //_currentCardPieces = new List<GameObject>(_elements.pieces);
+            //_currentCardPiecesSpriteRenderers = new List<SpriteRenderer>(_elements.piecesSpriteRenderers);
 
 
             if(_bottomCardElements != null)
             {
+                Debug.Log("Bottom: " + _bottomCardElements);
+
                 // are following lines needed
-                _bottomCardPieces = new List<GameObject>(_bottomCardElements.pieces);
-                _bottomCardPiecesSpriteRenderers = new List<SpriteRenderer>(_bottomCardElements.piecesSpriteRenderers);
+                //_bottomCardPieces = new List<GameObject>(_bottomCardElements.pieces);
+                //_bottomCardPiecesSpriteRenderers = new List<SpriteRenderer>(_bottomCardElements.piecesSpriteRenderers);
+
 
                 // piece and SpriteRenderer variales are global. So there is no need to pass them
                 FindBottomAdjacentPiecesOfCards(_elements, _bottomCardElements);
+                // handle position changes because of the destruction
+
+                Debug.Log("Bottom Script: " + _bottomCardElements);
+                if (_bottomCardElements != null)
+                    Debug.Log("Bottom GO: " + _bottomCardElements.gameObject);
             }
 
             if( _rightCardElements != null)
             {
                 // are following lines needed
-                _rightCardPieces = new List<GameObject>(_rightCardElements.pieces);
-                _rightCardPiecesSpriteRenderers = new List<SpriteRenderer>(_rightCardElements.piecesSpriteRenderers);
+                //_rightCardPieces = new List<GameObject>(_rightCardElements.pieces);
+                //_rightCardPiecesSpriteRenderers = new List<SpriteRenderer>(_rightCardElements.piecesSpriteRenderers);
                 FindRightAdjacentPiecesOfCards(_elements, _rightCardElements);
             }
+
         }
     }
 
@@ -181,9 +192,11 @@ public class JoinCards : MonoBehaviour
                 _indexOfCurrentCardPiece = i;
                 _indexOfBottomAdjPiece = j;
 
+                /*
                 Debug.Log("Elements: " + _elements + "Count pieces: " + _elements.pieces.Count + " i: " + i);
                 Debug.Log("BElements: " + _bottomCardElements + "Count pieces: " +
                     _bottomCardElements.pieces.Count + " j: " + j);
+                */
 
                 BottomChecks(_elements, _bottomCardElements, _indexOfCurrentCardPiece, _indexOfBottomAdjPiece,
                     _elements.pieces[i], _localPosCurrentCardPiece, _bottomCardElements.pieces[j], _localPosBottomCardPiece);
@@ -196,7 +209,7 @@ public class JoinCards : MonoBehaviour
         }
 
         Debug.Log("\n");
-        if (_hasMatched) TravelCoordinateSystem();
+        //if (_hasMatched) TravelCoordinateSystem();
     }
 
     private void BottomChecks(CardElements _elements, CardElements _bottomCardElements, int indexOfCurrentCardPiece, 
@@ -475,11 +488,12 @@ public class JoinCards : MonoBehaviour
 
                 _indexOfCurrentCardPiece = i;
                 _indexOfRightAdjPiece = j;
-
+                /*
                 Debug.Log("Elements: " + _elements + "Count pieces: " + _elements.pieces.Count + " i: " + i);
                 Debug.Log("RElements: " + _rightCardElements + "Count pieces: " + 
                     _rightCardElements.pieces.Count + " j: " + j);
-
+                */
+                // make null error check here. If card is null, break;
                 RightChecks(_elements, _indexOfCurrentCardPiece, _elements.pieces[i], _localPosCurrentCardPiece,
                             _rightCardElements, _indexOfRightAdjPiece, _rightCardElements.pieces[j], _localPosRightCardPiece);
 
@@ -499,7 +513,7 @@ public class JoinCards : MonoBehaviour
 
         Debug.Log("\n");
 
-        if (_hasMatched) TravelCoordinateSystem();
+        //if (_hasMatched) TravelCoordinateSystem();
     }
 
     private void RightChecks( CardElements _elements, int _indexOfCurrentCardPiece, GameObject _currentCardPiece, 
@@ -764,8 +778,9 @@ public class JoinCards : MonoBehaviour
         //_adjCardPiecesSpriteRenderers[_indexOfAdjPiece].color
 
         // additions after fors
-        _currentCardPiecesList = _elements.pieces;
-        _adjCardPiecesList = _adjCardElements.pieces;
+        //_currentCardPiecesList = _elements.pieces;
+        //_adjCardPiecesList = _adjCardElements.pieces;
+        int _countOfElementsPieces, _countOfAdjElementsPieces;
 
         if (_elements.piecesSpriteRenderers[_indexOfCurrentCardPiece].color ==
             _adjCardElements.piecesSpriteRenderers[_indexOfAdjPiece].color)
@@ -794,6 +809,19 @@ public class JoinCards : MonoBehaviour
             _joinPieces.DestroyPiece(_elements, _currentCardPiece);
             _joinPieces.DestroyPiece(_adjCardElements, _adjPiece);
 
+            _countOfElementsPieces = _elements.pieces.Count; 
+            _countOfAdjElementsPieces = _adjCardElements.pieces.Count;
+
+            if (_countOfElementsPieces == 0)
+            {
+                // destroy card
+                DestroyCard(_elements);
+            }
+
+            if( _countOfAdjElementsPieces == 0)
+            {
+                Destroy(_adjCardElements);
+            }
             /*
             Debug.Log("_elements pieces after update: " + _elements);
             foreach(GameObject piece in _elements.pieces)
@@ -815,6 +843,8 @@ public class JoinCards : MonoBehaviour
 
             
         }
+
+
     }
 
     private void HandleAdjacentPieces(CardElements _cardElements, GameObject _targetPiece, 
@@ -926,17 +956,31 @@ public class JoinCards : MonoBehaviour
                 _joinPieces.MergePieces(_sibling, false);
                 // call DestroyPiece for _currentCardPiece immediate after
             }
-            else // if _countOfElementsPieces == 1
-            {
-                // destroy card
-                DestroyCard(_cardElements);
-            }
-
+            
         }
+
     }
 
     private void DestroyCard(CardElements _cardToDestroy)
     {
+        Debug.Log("BEFORE DESTRUCTION: ");
+        for(int i = 0; i < _coordinates.GetLength(0); i++)
+        {
+            for(int j = 0; j < _coordinates.GetLength(1); j++)
+            {
+                Debug.Log("script: " + _coordinates[i, j] + " GO: " + _coordinates[i, j].gameObject.name);
+            }
+        }
+
         Destroy(_cardToDestroy.gameObject);
+
+        Debug.Log("AFTER DESTRUCTION: ");
+        for (int i = 0; i < _coordinates.GetLength(0); i++)
+        {
+            for (int j = 0; j < _coordinates.GetLength(1); j++)
+            {
+                Debug.Log("script: " + _coordinates[i, j] + " GO: " + _coordinates[i, j].gameObject.name);
+            }
+        }
     }
 }
