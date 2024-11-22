@@ -30,6 +30,8 @@ public class CardSpawner : MonoBehaviour
     [Header("Grid System")]
     [SerializeField] private GridManager _grid;
     [SerializeField] private Transform _cardParent;
+    [SerializeField] private HorizontalMover _horizontalMover;
+    //[SerializeField] private HorizontalMover _horizontalMover;
     // uncle of pieces
     private Transform _uncle;
     //GameObject piece;
@@ -49,8 +51,9 @@ public class CardSpawner : MonoBehaviour
     // i expect an error here. BE CAREFUL
     [Header("Merge")]
     [SerializeField] private JoinCards _joinCards;
+    private JoinPieces _joinPieces;
 
-
+    private bool _isFirst = true;
 
     public Dictionary<GameObject, Vector3> CardPositions { get { return _cardPositions; } }
     public List<Transform> GetChildren(string _cardName) { return _cardChildren[_cardName]; }
@@ -58,9 +61,12 @@ public class CardSpawner : MonoBehaviour
     public List<Color> GetPieceColors(string _cardName) { return _pieceColors[_cardName]; }
     public void SetPieceColors(string _cardName, List<Color> _newColors) { _pieceColors[_cardName] = _newColors; }
     public float GetGapBetweenPieces() { return _gapBetweenPieces; }
+    public CardElements GetPlayableInstance() { return _playableCardScriptInstance; }
+    CardElements _playableCardScriptInstance;
     //public float CardLocalY { get { return cardLocalY; } }
     private void Start()
     {
+        _joinPieces = ScriptManagement.Instance.GetJoinPieces();
 
         _playableCardPrefab = _playableCardElements.gameObject;
         _nonPlayableCardPrefab = _nonePlayableCardElements.gameObject;
@@ -87,8 +93,15 @@ public class CardSpawner : MonoBehaviour
         //GameObject _card = new GameObject(_cardName);
         //GameObject _card = Instantiate(_playableCardPrefab);
         //_card.name = _cardName;
-        CardElements _playableCardScriptInstance = Instantiate(_playableCardElements);
+        _playableCardScriptInstance = Instantiate(_playableCardElements);
         _playableCardScriptInstance.gameObject.name = _cardName;
+        //_horizontalMover.SetPlayableCardInstance(_playableCardScriptInstance);
+
+        // first time JoinPieces.cs travels all of the cards system. No need to chech for same colored 
+        // pieces twice
+        //Debug.Log("card - spwnr: " + _playableCardScriptInstance.piecesSpriteRenderers[1].color.ToHexString());
+       
+
 
         // find the median of dropZoneHeight and align card
         if (_grid.DropZoneSize % 2 == 0)
@@ -127,7 +140,33 @@ public class CardSpawner : MonoBehaviour
         }
         */
 
+        if (!_isFirst)
+        {
+            Debug.Log("ORHAAANNN: " + _playableCardScriptInstance);
+            //_joinPieces.FindAdjacentPieces(_playableCardScriptInstance);
+            //_joinPieces.UpdatePlayableCardInstance();
+            /*
+            CardElements[,] _trial = _positionHandler.GetCoordinatesArray();
 
+            
+            Debug.Log("new arr: ");
+            for(int i = 0; i < _trial.GetLength(0); i++)
+            {
+                for(int j = 0; j < _trial.GetLength(1); j++)
+                {
+                    if (_trial[i, j] != null)
+                    {
+                        Debug.Log("(" + i + ", " + j + ")" + _trial[i, j].gameObject.name);
+                    }
+                }
+            }
+            */
+        }
+        _joinPieces.UpdatePlayableCardInstance();
+        //_horizontalMover.SetPlayableCardInstance(_playableCardScriptInstance);
+        //_horizontalMover.playableCardInstance = _playableCardScriptInstance;
+
+        _isFirst = false;
     }
 
     private void SpawnCards(bool _isPlayable, CardElements _cardScriptInstance, Color[] _randomColors, Vector3 _position)

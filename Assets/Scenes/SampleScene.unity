@@ -263,6 +263,8 @@ MonoBehaviour:
   _cardSpawner: {fileID: 964757707}
   _positionHandler: {fileID: 964757708}
   _joinPieces: {fileID: 504073800}
+  _verticalMover: {fileID: 964757709}
+  _maxPlayers: 0
 --- !u!4 &504073802
 Transform:
   m_ObjectHideFlags: 0
@@ -560,6 +562,7 @@ MonoBehaviour:
   _cardFields: {fileID: 11400000, guid: 36c26e204f307d84d8a5eebf1270c3d4, type: 2}
   _grid: {fileID: 964757705}
   _cardParent: {fileID: 718753983}
+  _horizontalMover: {fileID: 8355595174732704841, guid: 0ad687cd5d07bd84da80dc1d39544da4, type: 3}
   _positionHandler: {fileID: 964757708}
   _joinCards: {fileID: 504073801}
 --- !u!114 &964757708
@@ -587,6 +590,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _positionHandler: {fileID: 964757708}
+  _joinCards: {fileID: 504073801}
 --- !u!1 &1371781196
 GameObject:
   m_ObjectHideFlags: 0
@@ -744,6 +748,10 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 504073801}
     - target: {fileID: 266085840926034292, guid: 2b0d47199e4b9ee4392ad8ef5e56cab2, type: 3}
+      propertyPath: _joinPieces
+      value: 
+      objectReference: {fileID: 504073800}
+    - target: {fileID: 266085840926034292, guid: 2b0d47199e4b9ee4392ad8ef5e56cab2, type: 3}
       propertyPath: _cardSpawner
       value: 
       objectReference: {fileID: 964757707}
@@ -751,6 +759,10 @@ PrefabInstance:
       propertyPath: _gridManager
       value: 
       objectReference: {fileID: 964757705}
+    - target: {fileID: 266085840926034292, guid: 2b0d47199e4b9ee4392ad8ef5e56cab2, type: 3}
+      propertyPath: _verticalMover
+      value: 
+      objectReference: {fileID: 964757709}
     - target: {fileID: 266085840926034292, guid: 2b0d47199e4b9ee4392ad8ef5e56cab2, type: 3}
       propertyPath: _positionHandler
       value: 

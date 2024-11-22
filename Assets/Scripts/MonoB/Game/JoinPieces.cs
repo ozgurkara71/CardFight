@@ -12,17 +12,17 @@ public class JoinPieces : MonoBehaviour
     private List<GameObject> _pieces;
     private List<SpriteRenderer> _piecesSpriteRenderers;
     // U SHOULD USE HERE IN EVERY _playableCrdInstance SPAWN, UPDATE FUNC
-    private CardElements _playableCrdInstance;
+    private CardElements _playableCardInstance;
     private float _gapBetweenPieces;
 
     void Start()
     {
         _coordinates = _positionHandler.GetCoordinatesArray();
-        _playableCrdInstance = _positionHandler.GetPlayableInstance();
+        //_playableCardInstance = _positionHandler.GetPlayableInstance();
+        //UpdatePlayableCardInstance();
         _gapBetweenPieces = _cardSpawner.GetGapBetweenPieces();
 
         TravelCoordinateSystem();
-        FindAdjacentPieces(_playableCrdInstance);
     }
 
     
@@ -31,54 +31,15 @@ public class JoinPieces : MonoBehaviour
         
     }
 
-    public void MergePieces(GameObject _piece, bool _isVertical)
+    public void UpdatePlayableCardInstance()
     {
-        Vector3 _pieceLocalPos = _piece.transform.localPosition;
-        Vector3 _pieceLocalScale = _piece.transform.localScale;
-
-        if (!_isVertical)
-        {
-            _piece.transform.localScale = new Vector3(_pieceLocalScale.x * 2 + _gapBetweenPieces, _pieceLocalScale.y);
-            _piece.transform.localPosition = new Vector3(0, _pieceLocalPos.y);
-        }
-        else // if(_isVertical)
-        {
-            _piece.transform.localScale = new Vector3(_pieceLocalScale.x, _pieceLocalScale.y * 2 + _gapBetweenPieces);
-            _piece.transform.localPosition = new Vector3(_pieceLocalPos.x, 0);
-        }
+        _playableCardInstance = _cardSpawner.GetPlayableInstance();
+        Debug.Log("UpdatePlayableCardInstance: " + _playableCardInstance);
+        Debug.Log("Gap: " + _gapBetweenPieces);
+        FindAdjacentPieces(_playableCardInstance);
     }
 
-    public void DestroyPiece(CardElements _elements, GameObject _piece)
-    {
-        int _indexOfPiece = _elements.pieces.IndexOf(_piece);
-
-        _elements.pieces.RemoveAt(_indexOfPiece);
-        _elements.piecesSpriteRenderers.RemoveAt(_indexOfPiece);
-        Destroy(_piece);
-    }
-
-    private void TravelCoordinateSystem()
-    {
-
-        // this func doesnt handle playable card for now
-
-        // if there is no card in a i, this means there is no necessary to go up. There is not card up there
-        // implement this check
-
-        // optimise following lines and FindAdjacentPieces fnc
-        for(int i = 0; i < _coordinates.GetLength(0); i++)
-        {
-            for(int j = 0; j < _coordinates.GetLength(1); j++)
-            {
-                // _elements variable holds elements of related card (child pieces and sprite renderers of each piece)
-                CardElements _elements = _coordinates[i, j];
-                
-                FindAdjacentPieces(_elements);
-            }
-        }
-    }
-
-    private void FindAdjacentPieces(CardElements _elements)
+    public void FindAdjacentPieces(CardElements _elements)
     {
         bool _isVertical;
 
@@ -126,4 +87,53 @@ public class JoinPieces : MonoBehaviour
             }
         }
     }
+
+    public void MergePieces(GameObject _piece, bool _isVertical)
+    {
+        Vector3 _pieceLocalPos = _piece.transform.localPosition;
+        Vector3 _pieceLocalScale = _piece.transform.localScale;
+
+        if (!_isVertical)
+        {
+            _piece.transform.localScale = new Vector3(_pieceLocalScale.x * 2 + _gapBetweenPieces, _pieceLocalScale.y);
+            _piece.transform.localPosition = new Vector3(0, _pieceLocalPos.y);
+        }
+        else // if(_isVertical)
+        {
+            _piece.transform.localScale = new Vector3(_pieceLocalScale.x, _pieceLocalScale.y * 2 + _gapBetweenPieces);
+            _piece.transform.localPosition = new Vector3(_pieceLocalPos.x, 0);
+        }
+    }
+
+    public void DestroyPiece(CardElements _elements, GameObject _piece)
+    {
+        int _indexOfPiece = _elements.pieces.IndexOf(_piece);
+
+        // anim
+        _elements.pieces.RemoveAt(_indexOfPiece);
+        _elements.piecesSpriteRenderers.RemoveAt(_indexOfPiece);
+        Destroy(_piece);
+    }
+
+    private void TravelCoordinateSystem()
+    {
+
+        // this func doesnt handle playable card for now
+
+        // if there is no card in a i, this means there is no necessary to go up. There is not card up there
+        // implement this check
+
+        // optimise following lines and FindAdjacentPieces fnc
+        for(int i = 0; i < _coordinates.GetLength(0); i++)
+        {
+            for(int j = 0; j < _coordinates.GetLength(1); j++)
+            {
+                // _elements variable holds elements of related card (child pieces and sprite renderers of each piece)
+                CardElements _elements = _coordinates[i, j];
+                
+                FindAdjacentPieces(_elements);
+            }
+        }
+    }
+
 }

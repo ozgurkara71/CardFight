@@ -9,6 +9,9 @@ public class JoinCards : MonoBehaviour
     [SerializeField] private CardSpawner _cardSpawner;
     [SerializeField] private PositionHandler _positionHandler;
     [SerializeField] private JoinPieces _joinPieces;
+    [SerializeField] private VerticalMover _verticalMover;
+
+    [SerializeField] private int _maxPlayers;
 
     private CardElements[,] _coordinates;
     private List<GameObject> _currentCardPieces, _bottomCardPieces, _rightCardPieces, _aboveCardPieces, _leftCardPieces;
@@ -16,7 +19,8 @@ public class JoinCards : MonoBehaviour
         _aboveCardPiecesSpriteRenderers, _leftCardPiecesSpriteRenderers;
 
     private float _gapBetweenPieces;
-    private bool _hasMatched = false;
+    private bool _hasChanged = false;
+    public bool HasChanged { get { return _hasChanged; } set { _hasChanged = value; } }
 
     void Start()
     {
@@ -34,7 +38,7 @@ public class JoinCards : MonoBehaviour
 
     public void TravelCoordinateSystem()
     {
-        _hasMatched = false;
+        _hasChanged = false;
 
         for(int i = 0; i < _coordinates.GetLength(0); i++)
         {
@@ -48,7 +52,7 @@ public class JoinCards : MonoBehaviour
             }
         }
 
-        if (_hasMatched) TravelCoordinateSystem();
+        if (_hasChanged) TravelCoordinateSystem();
     }
 
     // pos(x, y) = _coordinates[i, j] => (x, y) = (i, j)
@@ -93,7 +97,7 @@ public class JoinCards : MonoBehaviour
     {
         if (j > 0)
         {
-            return _coordinates[i, j - 1];
+            return _coordinates[i - 1, j];
         }
         else
         {
@@ -112,6 +116,8 @@ public class JoinCards : MonoBehaviour
     {
         int _lineSize = _coordinates.GetLength(0);
         int _rowSize = _coordinates.GetLength(1);
+        int _jValueOfBottomCard = -1;
+        int _iValueOfRightCard = -1;
 
         if(_elements != null)
         {
@@ -124,7 +130,8 @@ public class JoinCards : MonoBehaviour
 
             if(_bottomCardElements != null)
             {
-                Debug.Log("Bottom: " + _bottomCardElements);
+                //Debug.Log("Bottom: " + _bottomCardElements);
+                _jValueOfBottomCard = j - 1;
 
                 // are following lines needed
                 //_bottomCardPieces = new List<GameObject>(_bottomCardElements.pieces);
@@ -135,17 +142,98 @@ public class JoinCards : MonoBehaviour
                 FindBottomAdjacentPiecesOfCards(_elements, _bottomCardElements);
                 // handle position changes because of the destruction
 
+                /*
                 Debug.Log("Bottom Script: " + _bottomCardElements);
                 if (_bottomCardElements != null)
                     Debug.Log("Bottom GO: " + _bottomCardElements.gameObject);
+                Debug.Log("Bottom chld count: " + _bottomCardElements.pieces.Count);
+                */
+
+                if(_bottomCardElements.pieces.Count == 0)
+                {
+                    DestroyCard(_bottomCardElements, i, _jValueOfBottomCard);
+
+                    // this means current card and cards which above it, stands on space
+                    // carry them one below y position
+
+                    /*
+                    Debug.Log("Bottom is deleted. Curr: " + _elements);
+                    
+                    if(_elements != null)
+                        _verticalMover.SlideCardDown(_elements, i, j);
+                    */
+
+                    // set null _coordinates slot of _bottomCardElements
+                    //_positionHandler.SetCoordinatesArray(i, _jValueOfBottomCard, null);
+                }
+
+                if (_elements.pieces.Count == 0)
+                {
+                    //CardElements _aboveCard = FindAboveCard(i, j, _lineSize);
+
+                    DestroyCard(_elements, i, j);
+
+                    /*
+                    Debug.Log("Bottom crr is deleted. Above: " + _aboveCard);
+                    
+                    if (_aboveCard != null)
+                    {
+                        _verticalMover.SlideCardDown(_aboveCard, i, j);
+                    }
+                    */
+                    // set null _coordinates slot of _elements (_elements)
+                    //_positionHandler.SetCoordinatesArray(i, j, null);
+                    Debug.Log("WHATT!!!" + _elements + " " + i + ", " + j);
+                    
+                }
             }
 
             if( _rightCardElements != null)
             {
+                _iValueOfRightCard = i + 1;
                 // are following lines needed
                 //_rightCardPieces = new List<GameObject>(_rightCardElements.pieces);
                 //_rightCardPiecesSpriteRenderers = new List<SpriteRenderer>(_rightCardElements.piecesSpriteRenderers);
                 FindRightAdjacentPiecesOfCards(_elements, _rightCardElements);
+
+                //Debug.Log("_elements: " + _elements + " chld: " + _elements.pieces.Count);
+                //Debug.Log("_Relements: " + _elements + " chld: " + _rightCardElements.pieces.Count);
+
+                if (_rightCardElements.pieces.Count == 0)
+                {
+                    //CardElements _aboveCard = FindAboveCard(_iValueOfRightCard, j, _lineSize);
+
+                    DestroyCard(_rightCardElements, _iValueOfRightCard, j);
+
+                    /*
+                    Debug.Log("right is deleted. Above: " + _aboveCard);
+                    
+                    if (_aboveCard != null)
+                    {
+                        _verticalMover.SlideCardDown(_aboveCard, _iValueOfRightCard, j);
+                    }
+                    */
+                    // set null _coordinates slot of _rightCardElements
+                    //_positionHandler.SetCoordinatesArray(_iValueOfRightCard, j, null);
+                }
+
+                if (_elements.pieces.Count == 0)
+                {
+                    //CardElements _aboveCard = FindAboveCard(i, j, _lineSize);
+
+                    DestroyCard(_elements, i, j);
+
+                    /*
+                    Debug.Log("right curr is deleted. Above: " + _aboveCard);
+                    
+                    if (_aboveCard != null)
+                    {
+                        _verticalMover.SlideCardDown(_aboveCard, i, j);
+                    }
+                    */
+                    // set null _coordinates slot of _elements (_elements)
+                    //_positionHandler.SetCoordinatesArray(i, j, null);
+                }
             }
 
         }
@@ -179,7 +267,7 @@ public class JoinCards : MonoBehaviour
         }
         */
 
-        Debug.Log("\n");
+        //Debug.Log("\n");
 
         for (int i = 0; i < _elements.pieces.Count; i++)
         {
@@ -208,7 +296,7 @@ public class JoinCards : MonoBehaviour
             }
         }
 
-        Debug.Log("\n");
+        //Debug.Log("\n");
         //if (_hasMatched) TravelCoordinateSystem();
     }
 
@@ -476,7 +564,7 @@ public class JoinCards : MonoBehaviour
         }
         */
 
-        Debug.Log("\n");
+        //Debug.Log("\n");
 
         for (int i = 0; i < _elements.pieces.Count; i++)
         {
@@ -504,6 +592,7 @@ public class JoinCards : MonoBehaviour
                     break;
                 }
                 */
+                // ???
                 if (i >= _elements.pieces.Count)
                 {
                     break;
@@ -511,7 +600,7 @@ public class JoinCards : MonoBehaviour
             }
         }
 
-        Debug.Log("\n");
+        //Debug.Log("\n");
 
         //if (_hasMatched) TravelCoordinateSystem();
     }
@@ -785,9 +874,15 @@ public class JoinCards : MonoBehaviour
         if (_elements.piecesSpriteRenderers[_indexOfCurrentCardPiece].color ==
             _adjCardElements.piecesSpriteRenderers[_indexOfAdjPiece].color)
         {
+
+            _hasChanged = true;
+
+            /*
             Debug.Log("\n\n\n");
             Debug.Log("In: " + _elements + ": " + _currentCardPiece + " / " + _adjCardElements +
                      ": " + _adjPiece);
+            */
+
             /*
             Debug.Log("--------------------------------------------------- ");
             Debug.Log("_elements pieces before update: " + _elements);
@@ -802,6 +897,8 @@ public class JoinCards : MonoBehaviour
             }
             Debug.Log("--------------------------------------------------- ");
             */
+            // we can call adjcejck methods here to handle chain reactions.
+            // We should'nt destroy adj pieces before reactions
 
             HandleAdjacentPieces(_elements, _currentCardPiece, _currentCardPiecesList);
             HandleAdjacentPieces(_adjCardElements, _adjPiece, _adjCardPiecesList);
@@ -809,8 +906,11 @@ public class JoinCards : MonoBehaviour
             _joinPieces.DestroyPiece(_elements, _currentCardPiece);
             _joinPieces.DestroyPiece(_adjCardElements, _adjPiece);
 
+            /*
             _countOfElementsPieces = _elements.pieces.Count; 
             _countOfAdjElementsPieces = _adjCardElements.pieces.Count;
+            Debug.Log("_countOfElementsPieces: " + _countOfElementsPieces + " _elements: " + _elements);
+            Debug.Log("_countOfAdjElementsPieces: " + _countOfAdjElementsPieces + " _adjCardElements: " + _adjCardElements);
 
             if (_countOfElementsPieces == 0)
             {
@@ -818,10 +918,12 @@ public class JoinCards : MonoBehaviour
                 DestroyCard(_elements);
             }
 
-            if( _countOfAdjElementsPieces == 0)
+            if(_countOfAdjElementsPieces == 0)
             {
+                Debug.Log("Coming: " + _adjCardElements);
                 Destroy(_adjCardElements);
             }
+            */
             /*
             Debug.Log("_elements pieces after update: " + _elements);
             foreach(GameObject piece in _elements.pieces)
@@ -836,7 +938,6 @@ public class JoinCards : MonoBehaviour
 
             Debug.Log("\n\n\n");
             */
-            _hasMatched = true;
             
             //Debug.Log(_elements.piecesSpriteRenderers[_indexOfCurrentCardPiece].color ==
             //_adjCardElements.piecesSpriteRenderers[_indexOfAdjPiece].color);
@@ -961,26 +1062,45 @@ public class JoinCards : MonoBehaviour
 
     }
 
-    private void DestroyCard(CardElements _cardToDestroy)
+    private void DestroyCard(CardElements _cardToDestroy, int _coordinateX, int _coordinateY)
     {
-        Debug.Log("BEFORE DESTRUCTION: ");
-        for(int i = 0; i < _coordinates.GetLength(0); i++)
+        //Debug.Log("_cardToDestroy: " + _cardToDestroy.gameObject);
+        if (_cardToDestroy.gameObject != null)
         {
-            for(int j = 0; j < _coordinates.GetLength(1); j++)
-            {
-                Debug.Log("script: " + _coordinates[i, j] + " GO: " + _coordinates[i, j].gameObject.name);
-            }
-        }
+            // fix _lineSize
+            CardElements _aboveCard = FindAboveCard(_coordinateX, _coordinateY, 6);
 
-        Destroy(_cardToDestroy.gameObject);
+            //Debug.Log("some card is deleted: (" + _coordinateX + ", " + _coordinateY + ")"
+                //+ _cardToDestroy + "Above: " + _aboveCard);
+            
+            //Debug.Log("_cardToDestroy: " + _cardToDestroy.gameObject);
 
-        Debug.Log("AFTER DESTRUCTION: ");
-        for (int i = 0; i < _coordinates.GetLength(0); i++)
-        {
-            for (int j = 0; j < _coordinates.GetLength(1); j++)
+            // anim
+            Destroy(_cardToDestroy.gameObject);
+
+            // set null _coordinates slot of _cardElements
+            _positionHandler.SetCoordinatesArray(_coordinateX, _coordinateY, null);
+
+
+            if (_aboveCard != null)
             {
-                Debug.Log("script: " + _coordinates[i, j] + " GO: " + _coordinates[i, j].gameObject.name);
+                // think it again. It may be unnecessary assignment
+                if(!_hasChanged) _hasChanged = true;
+
+                //Debug.Log("out y: " + (_coordinateY + 1));
+                _verticalMover.InitializeNonePlayableCardLocalPos(_aboveCard, _coordinateX, _coordinateY + 1);
             }
+            /*
+            Debug.Log("After update: ");
+            for(int i = 0; i < _coordinates.GetLength(0); i++)
+            {
+                for(int j = 0; j < _coordinates.GetLength(1); j++)
+                {
+                    Debug.Log("(" + i + ", " + j + "): " + _coordinates[i, j]);
+                }
+            }
+            */
         }
+        
     }
 }

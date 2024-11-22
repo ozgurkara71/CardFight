@@ -1,14 +1,17 @@
 using System.Collections.Generic;
 using System.Linq;
+using Unity.VisualScripting;
 using UnityEngine;
 
 public class HorizontalMover : MonoBehaviour
 {
     // FIX ALL THESE private public THINGS
     private JoinCards _joinCards;
-    private CardElements _playableCardInstance;
+    // change instance
+    public CardElements playableCardInstance;
     private GridManager _grid;
     private CardSpawner _spawner;
+    private VerticalMover _verticalMover;
     private PositionHandler _positionHandler;
 
     private Transform _dropParent;
@@ -23,6 +26,7 @@ public class HorizontalMover : MonoBehaviour
     {
         _grid = ScriptManagement.Instance.GetGridManager();
         _spawner = ScriptManagement.Instance.GetCardSpawner();
+        _verticalMover = ScriptManagement.Instance.GetVerticalMover();
         //_positionHandler = ScriptManagement.Instance.GetPositionHandler();
         //_joinCards = ScriptManagement.Instance.GetJoinCards();
 
@@ -37,12 +41,13 @@ public class HorizontalMover : MonoBehaviour
         // asagiyi duzelt. DropZoneHieght dogru degil
         //startPoint = new Vector3(0, grid.DropZoneHeight + .5f);
         //endPoint = new Vector3(grid.DropZoneHeight - 1, grid.DropZoneHeight + .5f);
+
     }
 
 
     void Update()
     {
-        if(_isHovering)
+        if (_isHovering)
         {
             HorizontalMovement();
         }
@@ -56,15 +61,25 @@ public class HorizontalMover : MonoBehaviour
 
             // simdilik
             // collideri (ve hatta mover i) setactive false de
-            VerticalMovement();
+
             _isHovering = false;
             _isFirst = false;
+            playableCardInstance = _spawner.GetPlayableInstance();
+            //Debug.Log("card - horizontal: " + _playableCardInstance.piecesSpriteRenderers[1].color.ToHexString());
+            Debug.Log("inst: " + playableCardInstance);
+
+            _verticalMover.InitializePlayableCardLocalPos(playableCardInstance, 
+                (int)transform.localPosition.x);
+
+            _spawner.InitPlayableCards();
+            //VerticalMovement();
             //_spawner.
         }
         
+        /*
         else if(!_isFirst)
             VerticalMovement();
-        
+        */
     }
 
     // asagiyi onmousedrag ile degistir ve asagidan cagir
@@ -78,7 +93,9 @@ public class HorizontalMover : MonoBehaviour
 
     public void SetPlayableCardInstance(CardElements _instance)
     {
-        _playableCardInstance = _instance;
+        Debug.Log("Came to set: " + _instance);
+        playableCardInstance = _instance;
+        Debug.Log("inst: " + playableCardInstance);
     }
 
     void HorizontalMovement()
@@ -97,18 +114,21 @@ public class HorizontalMover : MonoBehaviour
         Vector3 _nextLocalPos = new Vector3(transform.localPosition.x, 
             Mathf.Round(transform.localPosition.y - 1),
             transform.localPosition.z);
+
+        //_verticalMover.SlidePlayableCardDown(_playableCardInstance, );
+        /*
         // following line was supposed to do same job as the for loop but it didnt
         bool _doesContains = (_cardPositions.Values.ToList().Contains(_nextLocalPos));
 
-        /*
-        if(doesContains)
-        {
-            transform.localPosition = new Vector3(nextLocalPos.x, Mathf.Round(nextLocalPos.y + 1), nextLocalPos.z);
-            return;
-        }
-        */
-
         
+        //if(doesContains)
+        //{
+            //transform.localPosition = new Vector3(nextLocalPos.x, Mathf.Round(nextLocalPos.y + 1), nextLocalPos.z);
+            //return;
+        //}
+        
+
+
         foreach (Vector3 vec in _cardPositions.Values.ToList())
         {
             if(_nextLocalPos == vec)
@@ -132,5 +152,6 @@ public class HorizontalMover : MonoBehaviour
             //Debug.Log("Cagir");
             //_joinCards.TravelCoordinateSystem();
         }
+        */
     }
 }
