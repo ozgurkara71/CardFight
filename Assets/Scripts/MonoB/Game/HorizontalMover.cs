@@ -66,7 +66,7 @@ public class HorizontalMover : MonoBehaviour
             _isFirst = false;
             playableCardInstance = _spawner.GetPlayableInstance();
             //Debug.Log("card - horizontal: " + _playableCardInstance.piecesSpriteRenderers[1].color.ToHexString());
-            Debug.Log("inst: " + playableCardInstance);
+            //Debug.Log("inst: " + playableCardInstance);
 
             _verticalMover.InitializePlayableCardLocalPos(playableCardInstance, 
                 (int)transform.localPosition.x);

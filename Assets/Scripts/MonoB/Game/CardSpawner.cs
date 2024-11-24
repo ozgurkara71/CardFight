@@ -142,7 +142,7 @@ public class CardSpawner : MonoBehaviour
 
         if (!_isFirst)
         {
-            Debug.Log("ORHAAANNN: " + _playableCardScriptInstance);
+            //Debug.Log("ORHAAANNN: " + _playableCardScriptInstance);
             //_joinPieces.FindAdjacentPieces(_playableCardScriptInstance);
             //_joinPieces.UpdatePlayableCardInstance();
             /*

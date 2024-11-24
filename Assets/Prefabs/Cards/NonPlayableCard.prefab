@@ -337,6 +337,7 @@ MonoBehaviour:
   - {fileID: 6314445795872995883}
   - {fileID: 5500510891246650133}
   - {fileID: 6370791455700930943}
+  pieceAnimators: []
 --- !u!1 &4848727735052494849
 GameObject:
   m_ObjectHideFlags: 0
