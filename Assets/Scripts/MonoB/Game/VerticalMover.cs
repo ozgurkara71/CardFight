@@ -7,6 +7,7 @@ public class VerticalMover : MonoBehaviour
     [SerializeField] private PositionHandler _positionHandler;
     [SerializeField] private JoinCards _joinCards;
     [SerializeField] private JoinPieces _joinPieces;
+    [SerializeField] private Animate _animate;
 
     private CardElements[,] _coordinates;
     private Coroutine _currentCoroutine;
@@ -24,6 +25,14 @@ public class VerticalMover : MonoBehaviour
 
     private List<bool> _activeCoroutines = new List<bool>();
     private int _coroutineID = 0;
+
+    private float now;
+
+    private bool _isPlayableMoving = false;
+    private bool _isNonePlayableMoving = false;
+    private bool _isFirstFromPlayable = false;
+    private bool _isFirstFromNonePlayable = false;
+
 
     void Start()
     {
@@ -49,22 +58,27 @@ public class VerticalMover : MonoBehaviour
             //_activeMerge = false;
         }
 
-
+        CheckBusynessOfTravelCoordinateSys(_isFirstFromNonePlayable);
+        CheckBusynessOfTravelCoordinateSys();
     }
 
 
     public void InitializeNonePlayableCardLocalPos(CardElements _cardToSlide, int _coordinateXValue,
         int _coordinateYValue)
     {
+        //Debug.Log("vert card: " + _cardToSlide.name);
         //Vector3 _currentPos = new Vector3(_coordinateXValue, _coordinateYValue);
         Vector3 _currentPos = _cardToSlide.transform.localPosition;
-
+        // open here
+        /*
         _joinPieces.IsVerticalAnimating = 1;
         _joinPieces.IsMoving = true;
         _nonePlayableDestinationPosY = (int)_currentPos.y;
+        */
         //Debug.Log(_cardToSlide + ": " + _nonePlayableDestinationPosY);
 
         //_coordinates[_coordinateXValue, _coordinateYValue] = null;
+        _isNonePlayableMoving = true;
         SlideNonePlayableCardDown(_cardToSlide, _coordinateXValue, _coordinateYValue);
 
         //Debug.Log(_cardToSlide + " nonplayable _destinationPosY: " + _nonePlayableDestinationPosY);
@@ -117,7 +131,7 @@ public class VerticalMover : MonoBehaviour
     public void SlideNonePlayableCardDown(CardElements _cardToSlide, int _coordinateXValue, 
         int _coordinateYValue)
     {
-        Debug.Log("SlideNonePlayableCardDown _cardToSlide: " + _cardToSlide);
+        //Debug.Log("SlideNonePlayableCardDown _cardToSlide: " + _cardToSlide);
         // CALL ABOVE AND BOTTOM METHODS OF JOINCARDS HERE
         // check one below element of the _coordinates
 
@@ -151,11 +165,14 @@ public class VerticalMover : MonoBehaviour
             //StartCoroutine(ChangeLocalPositionOfCard(_cardToSlide, _coordinateXValue, 
             //_coordinateYValue));
             // change local position of the card
+            /*
             StartCoroutine(ChangeLocalPositionOfCard
                 (_cardToSlide.transform, _coordinateXValue, _coordinateYValue, _coroutineID));
             AddCoroutinesToList();
             _coroutineID++;
+            */
 
+            StartCoroutine(ManageMovingAnimation(_cardToSlide.transform, _coordinateXValue, _coordinateYValue));
 
             SlideNonePlayableCardDown(_cardToSlide, _coordinateXValue, _coordinateYValue - 1);
 
@@ -203,10 +220,11 @@ public class VerticalMover : MonoBehaviour
 
     public void SlidePlayableCardDown(CardElements _cardToSlide, int _coordinateXValue, int _coordinateYValue)
     {
-
+        /*
         Debug.Log("Playable: _coordinates[_coordinateXValue, _coordinateYValue]: " +
                 _coordinateXValue + ", " + _coordinateYValue + " " +
                 _coordinates[_coordinateXValue, _coordinateYValue]);
+        */
 
         /*
             Debug.Log(" _coordinates[_coordinateXValue, _coordinateYValue - 1]: " +
@@ -219,7 +237,7 @@ public class VerticalMover : MonoBehaviour
         {
             _coordinates[_coordinateXValue, _coordinateYValue - 1] = _cardToSlide;
             _coordinates[_coordinateXValue, _coordinateYValue] = null;
-            
+
             //Debug.Log("(_coordinateYValue - 1) in playable method: " + (_coordinateYValue - 1));
 
             /*
@@ -233,17 +251,48 @@ public class VerticalMover : MonoBehaviour
             // ...
             // change local position of the card
             //StartCoroutine(ChangeLocalPositionOfCard(_cardToSlide, 
-                //_coordinateXValue, _coordinateYValue));
-            
-            
+            //_coordinateXValue, _coordinateYValue));
+
+
+
+
+            // open here
+            /*
             StartCoroutine(ChangeLocalPositionOfCard
                 (_cardToSlide.transform, _coordinateXValue, _coordinateYValue, _coroutineID));
             AddCoroutinesToList();
             _coroutineID++;
+            */
+            StartCoroutine(ManageMovingAnimation(_cardToSlide.transform, _coordinateXValue, _coordinateYValue));
+
+
 
             //StartCoroutine(ChangeLocalPositionOfCard(_cardToSlide, 
                 //_coordinateXValue, _coordinateYValue));
             SlidePlayableCardDown(_cardToSlide, _coordinateXValue, _coordinateYValue - 1);
+        }
+    }
+
+    private IEnumerator ManageMovingAnimation(Transform _cardToSlide, int _coordinateXValue,
+        int _coordinateYValue)
+    {
+        //Debug.Log("Start sliding!!!!");
+        yield return StartCoroutine(_animate.ChangeLocalPositionOfCard(_cardToSlide, 
+            _coordinateXValue,_coordinateYValue));
+        //Debug.Log("Done sliding!!!!!");
+
+        if(_isPlayableMoving)
+        {
+            Debug.Log("_isPlayableMoving false");
+            _isFirstFromPlayable = true;
+            _isPlayableMoving = false;
+        }
+        
+        if(_isNonePlayableMoving)
+        {
+            Debug.Log("_isNonePlayableMoving false");
+            _isFirstFromNonePlayable = true;
+            _isNonePlayableMoving = false;
         }
     }
 
@@ -309,10 +358,25 @@ public class VerticalMover : MonoBehaviour
 
         // CALL ABOVE AND BOTTOM METHODS OF JOINCARDS HERE
         // check one below element of the _coordinates
+
+
+
+
+
+
+        // open here
+        /*
         StartCoroutine(ChangeLocalPositionOfCard(_cardToSlide.transform, _coordinateXValue, 
             _dropZoneSize, _coroutineID));
         AddCoroutinesToList();
         _coroutineID++;
+        */
+        _isPlayableMoving = true;
+        StartCoroutine(ManageMovingAnimation(_cardToSlide.transform, _coordinateXValue, _dropZoneSize));
+
+
+
+
 
         //ChangeLocalPositionOfCard(_cardToSlide.transform, _coordinateXValue, _dropZoneSize);
         //StartCoroutine(ChangeLocalPositionOfCard(_cardToSlide, _coordinateXValue, _dropZoneSize));
@@ -333,6 +397,32 @@ public class VerticalMover : MonoBehaviour
         }
 
         return;
+    }
+
+    // fix following methods
+
+    private void CheckBusynessOfTravelCoordinateSys(bool _isFirstFromNonePlayable)
+    {
+
+        if (!_joinCards.IsTravellingCoordinateSys && _joinPieces.HasStoppedAnimating && 
+            _isFirstFromNonePlayable)
+        {
+            this._isFirstFromNonePlayable = false;
+            _joinCards.TravelCoordinateSystem();
+        }
+
+    }
+
+    private void CheckBusynessOfTravelCoordinateSys()
+    {
+
+        if (!_joinCards.IsTravellingCoordinateSys && _joinPieces.HasStoppedAnimating &&
+            _isFirstFromPlayable)
+        {
+            _isFirstFromPlayable = false;
+            _joinCards.TravelCoordinateSystem();
+        }
+
     }
 
     private void AddCoroutinesToList()

@@ -227,6 +227,7 @@ GameObject:
   - component: {fileID: 504073802}
   - component: {fileID: 504073801}
   - component: {fileID: 504073800}
+  - component: {fileID: 504073803}
   m_Layer: 0
   m_Name: Merge
   m_TagString: Untagged
@@ -250,6 +251,7 @@ MonoBehaviour:
   _positionHandler: {fileID: 964757708}
   _joinCards: {fileID: 504073801}
   _gridManager: {fileID: 964757705}
+  _animate: {fileID: 504073803}
 --- !u!114 &504073801
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -281,6 +283,20 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &504073803
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 504073799}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 91797ec3350d4eb4688b6870845e5512, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _joinPieces: {fileID: 504073800}
+  _joinCards: {fileID: 504073801}
 --- !u!1 &519420028
 GameObject:
   m_ObjectHideFlags: 0
@@ -593,6 +609,7 @@ MonoBehaviour:
   _positionHandler: {fileID: 964757708}
   _joinCards: {fileID: 504073801}
   _joinPieces: {fileID: 504073800}
+  _animate: {fileID: 504073803}
 --- !u!1 &1371781196
 GameObject:
   m_ObjectHideFlags: 0

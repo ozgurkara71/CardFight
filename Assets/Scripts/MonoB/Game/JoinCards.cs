@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using System.Xml.Linq;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -20,17 +21,32 @@ public class JoinCards : MonoBehaviour
     private float _gapBetweenPieces;
     private bool _hasChanged = false;
 
-    private Dictionary<int, (CardElements, GameObject, bool)> _toBeAnimatedAndMerged;
-    private Dictionary<int, (CardElements, GameObject)> _toBeAnimatedAndDestroyed;
+    private Dictionary<int, (CardElements, GameObject, bool)> _piecesToBeAnimatedAndMerged;
+    private Dictionary<int, (CardElements, GameObject)> _piecesToBeAnimatedAndDestroyed;
     private int _toBeAnimatedAndMergedKeyID = 0;
     private int _toBeAnimatedAndDestroyedKeyID = 0;
     private CardElements[,] _coordinatesCopy;
+    //private Dictionary<CardElements, int> _cardsToBeDestroyed = new Dictionary<CardElements, int>();
+    private List<CardElements> _cardsToBeDestroyed = new List<CardElements>();
 
     private bool _isAnimating = true;
+    private bool _isTravellingCoordinateSys = false;
 
     public bool IsAnimating {  get { return _isAnimating; } set { _isAnimating = value; } }
 
     public bool HasChanged { get { return _hasChanged; } set { _hasChanged = value; } }
+    public bool IsTravellingCoordinateSys { get { return _isTravellingCoordinateSys; } 
+                                            set {  _isTravellingCoordinateSys = value; } }
+
+    public Dictionary<int, (CardElements, GameObject, bool)> GetToBeAnimatedAndMergedDictionary()
+    {
+        return _piecesToBeAnimatedAndMerged;
+    }
+
+    public Dictionary<int, (CardElements, GameObject)> GetToBeAnimatedAndDestroyedDictionary()
+    {
+        return _piecesToBeAnimatedAndDestroyed;
+    }
 
     void Start()
     {
@@ -57,9 +73,11 @@ public class JoinCards : MonoBehaviour
         // needed
         _hasChanged = false;
 
-        _toBeAnimatedAndMerged = new Dictionary<int, (CardElements, GameObject, bool)>(); 
-        _toBeAnimatedAndDestroyed = new Dictionary<int, (CardElements, GameObject)>();
+        _piecesToBeAnimatedAndMerged = new Dictionary<int, (CardElements, GameObject, bool)>(); 
+        _piecesToBeAnimatedAndDestroyed = new Dictionary<int, (CardElements, GameObject)>();
 
+        //Debug.Log("TravelCoordinateSystem()");
+        _isTravellingCoordinateSys = true;
         for (int i = 0; i < _coordinates.GetLength(0); i++)
         {
             for(int j = 0; j < _coordinates.GetLength(1); j++)
@@ -70,35 +88,256 @@ public class JoinCards : MonoBehaviour
                 //      break;
                 //StartCoroutine(FindAdjacentPieces(_elements, i, j));
 
+                /*
+                Debug.Log("Card: " + _coordinates[i, j]);
+                foreach(GameObject _piece in _coordinates[i, j].pieces)
+                {
+                    Debug.Log(_piece);
+
+                }
+                */
+                
+
+                //Debug.Log("\n");
+
+                //open here
+                /*
                 if(_isAnimating)
                 {
                     return;
                 }
+                */
 
-                //FindAdjacentPieces(_elements, i, j);
-                StartCoroutine(FindAdjacentPieces(_elements, i, j));
-                //yield return new WaitForSeconds(0.6f);
+
+
+                //open here
+                FindAdjacentPieces(_elements, i, j);
+                //StartCoroutine(FindAdjacentPieces(_elements, i, j));
             }
+
         }
 
-        /*
-        Debug.Log("\n_toBeAnimatedAndMerged");
-        foreach(var value in _toBeAnimatedAndMerged.Values)
+        _isTravellingCoordinateSys = false;
+
+        CorrectTheScalesOfPieces();
+        RemoveMatchingItemsFromToBeMergedDictionary();
+        FindCardsToBeDestroyed();
+
+        Debug.Log("\n\n");
+        Debug.Log("_toBeAnimatedAndMerged\n");
+        foreach(var value in _piecesToBeAnimatedAndMerged.Values)
         {
             Debug.Log("Card: " + value.Item1);
             Debug.Log("piece: " + value.Item2);
             Debug.Log("_isVertical: " + value.Item3);
+            Debug.Log("\n");
         }
 
-        Debug.Log("\n_toBeAnimatedAndDestroyed");
-        foreach (var value in _toBeAnimatedAndDestroyed.Values)
+        Debug.Log("\n\n");
+        Debug.Log("_toBeAnimatedAndDestroyed\n");
+        foreach (var value in _piecesToBeAnimatedAndDestroyed.Values)
         {
             Debug.Log("Card: " + value.Item1);
             Debug.Log("piece: " + value.Item2);
+            Debug.Log("\n");
+        }
+
+
+        _joinPieces.SetMergeInformations(_piecesToBeAnimatedAndMerged, _piecesToBeAnimatedAndDestroyed, 
+            _cardsToBeDestroyed);
+        //if (_hasChanged) TravelCoordinateSystem();
+    }
+
+    private void CorrectTheScalesOfPieces()
+    {
+        CardElements _currentCard;
+        GameObject _verticalSiblingPiece = null;
+        GameObject _rectangularPiece = null;
+        GameObject _horizontalSiblingPiece;
+        Vector3 _localPosOfPieceToBeDestroyed;
+        Vector3 _localPosOfSiblingPiece;
+        // move this???
+        List<GameObject> _piecesOfCurrentCard = new List<GameObject>();
+        int _pieceCountOfCard = -1;
+        bool _isHorizontalSiblingBeingDestroyed = false;
+        bool _isVerticalSiblingBeingDestroyed = true;
+        bool _isPieceToBeDestroyedSquare = false;
+        // this variable is true when two square piece is being destroyed out of the 3 pieces
+        bool _isAdjacentPieceBeingDestroyed = false;
+        // demonstrates direction of the enlarging
+        bool _isVertival = true;
+        Dictionary<int, (CardElements, GameObject)> _toBeAnimatedAndDestroyedCopy = 
+            new Dictionary<int, (CardElements, GameObject)>(_piecesToBeAnimatedAndDestroyed);
+
+
+        foreach (var value in _toBeAnimatedAndDestroyedCopy.Values)
+        {
+            // value.Item2 describes the current piece of current card
+
+            // if card has got 4 pieces
+            _currentCard = value.Item1;
+            _pieceCountOfCard = _currentCard.pieces.Count;
+            // fix following lines
+            _piecesOfCurrentCard = _currentCard.pieces;
+            _localPosOfPieceToBeDestroyed = value.Item2.transform.localPosition;
+            _isPieceToBeDestroyedSquare = 
+                (_localPosOfPieceToBeDestroyed.x != 0 && _localPosOfPieceToBeDestroyed.y != 0);
+
+            for (int i = 0; i < _pieceCountOfCard; i++)
+            {
+                if (_piecesOfCurrentCard[i] == value.Item2)
+                {
+                    continue;
+                }
+                _localPosOfSiblingPiece = _piecesOfCurrentCard[i].transform.localPosition;
+
+                if (_pieceCountOfCard == 4)
+                {
+                    // make traverse checks here!!!!!!!!
+                    if (new Vector3(_localPosOfPieceToBeDestroyed.x * -1, _localPosOfPieceToBeDestroyed.y) ==
+                       _localPosOfSiblingPiece &&
+                       _piecesToBeAnimatedAndDestroyed.ContainsValue((_currentCard, _piecesOfCurrentCard[i])))
+                    {
+                        _isHorizontalSiblingBeingDestroyed = true;
+
+                        /*
+                        foreach (var item in _toBeAnimatedAndMerged.Where
+                            (kvp => kvp.Value == (_currentCard, _piecesOfCurrentCard[i], false)).Take(1).ToList())
+                        {
+                            _toBeAnimatedAndMerged.Remove(item.Key);
+                        }
+                        */
+
+                    }
+
+                    if(new Vector3(_localPosOfPieceToBeDestroyed.x, _localPosOfPieceToBeDestroyed.y * -1) ==
+                       _localPosOfSiblingPiece && 
+                       !_piecesToBeAnimatedAndDestroyed.ContainsValue((_currentCard, _piecesOfCurrentCard[i])))
+                    {
+                        _isVerticalSiblingBeingDestroyed = false;
+                        _verticalSiblingPiece = _piecesOfCurrentCard[i];
+                    }
+                }
+                else if(_pieceCountOfCard == 3 && _isPieceToBeDestroyedSquare &&
+                       (_localPosOfSiblingPiece.x != 0 && _localPosOfSiblingPiece.y != 0) &&
+                       (_piecesToBeAnimatedAndDestroyed.ContainsValue((_currentCard, _piecesOfCurrentCard[i]))))
+                {
+                    _isAdjacentPieceBeingDestroyed = true;
+                }
+                else if(_pieceCountOfCard == 3 && _isPieceToBeDestroyedSquare && 
+                        _localPosOfSiblingPiece.x == 0)
+                {
+                    _rectangularPiece = _piecesOfCurrentCard[i];
+                    _isVertival = true;
+                }
+                else if(_pieceCountOfCard == 3 && _isPieceToBeDestroyedSquare &&
+                    _localPosOfSiblingPiece.y == 0)
+                {
+                    _rectangularPiece = _piecesOfCurrentCard[i];
+                    _isVertival = false;
+                }
+            }
+
+
+            // be careful about this condition check: 
+            //!_toBeAnimatedAndMerged.ContainsValue((_currentCard, _verticalSiblingPiece, true))
+            if (_isHorizontalSiblingBeingDestroyed && !_isVerticalSiblingBeingDestroyed &&
+                !_piecesToBeAnimatedAndMerged.ContainsValue((_currentCard, _verticalSiblingPiece, true)))
+            {
+                if (_verticalSiblingPiece == null)
+                {
+                    Debug.LogWarning("_verticalSiblingPiece NULL!!!");
+                }
+
+                _piecesToBeAnimatedAndMerged.Add(_toBeAnimatedAndMergedKeyID,
+                    (_currentCard, _verticalSiblingPiece, true));
+                _toBeAnimatedAndMergedKeyID++;
+            }
+
+            if(_isAdjacentPieceBeingDestroyed &&
+                !_piecesToBeAnimatedAndMerged.ContainsValue((_currentCard, _rectangularPiece, _isVertival)))
+            {
+                _piecesToBeAnimatedAndMerged.Add(_toBeAnimatedAndMergedKeyID,
+                    (_currentCard, _rectangularPiece, _isVertival));
+                _toBeAnimatedAndMergedKeyID++;
+            }
+
+            _isHorizontalSiblingBeingDestroyed = false;
+            _isVerticalSiblingBeingDestroyed = true;
+            _isAdjacentPieceBeingDestroyed = false;
+        }
+    }
+
+    // removes the piece that element of _toBeAnimatedAndMerged
+    // if it is also element of _toBeAnimatedAndDestroyed
+    private void RemoveMatchingItemsFromToBeMergedDictionary()
+    {
+        List<int> _matchingKeys = new List<int>();
+
+        foreach (var _pieceToBeDestroyed in _piecesToBeAnimatedAndDestroyed.Values)
+        {
+            Debug.Log("_pieceToBeDestroyed: " + _pieceToBeDestroyed);
+            Debug.Log("\n");
+            // pair describes every Key, Value pair of the related dictionary
+            _matchingKeys.AddRange(_piecesToBeAnimatedAndMerged.Where(_pair => _pair.Value.Item1.Equals( 
+                _pieceToBeDestroyed.Item1) && _pair.Value.Item2.Equals(
+                _pieceToBeDestroyed.Item2)).Select(pair => pair.Key).ToList());
+            // Equals instead of, because we need to check values, not references in case of references
+        }
+
+        /*
+        Debug.Log("\n");
+
+        foreach (int key in _matchingKeys)
+        {
+            Debug.Log("Key item 1: " + _piecesToBeAnimatedAndMerged[key].Item1);
+            Debug.Log("Key item 2: " + _piecesToBeAnimatedAndMerged[key].Item2);
+            Debug.Log("\n");
+        }
+
+        Debug.Log("\n");
+        Debug.Log("Matching Keys: ");
+        foreach (int key in _matchingKeys)
+        {
+            Debug.Log("Key: " + key);
+            _piecesToBeAnimatedAndMerged.Remove(key);
+            _toBeAnimatedAndMergedKeyID--;
         }
         */
 
-        //if (_hasChanged) TravelCoordinateSystem();
+    }
+
+    private void FindCardsToBeDestroyed()
+    {
+        //Key: CardElements
+        //Value: How much of this CardElement is in the _toBeAnimatedAndDestroyed dictionary
+        // we know that pieces to be destroyed are in the _toBeAnimatedAndDestroyed.
+        // For example Card3 has 3 pieces and 2 of them are to be destroyed during loop
+        // These 2 pieces are being stored in the _toBeAnimatedAndDestroyed.
+        // If all pieces of a card are in his dictionary, this means there is no piece left on this card
+        // and this card has to be destroyed
+
+        Dictionary<CardElements, int> _cardElementsCountsInDestructionDictionary = _piecesToBeAnimatedAndDestroyed
+            .GroupBy(_kvp => _kvp.Value.Item1)
+            .ToDictionary(_group => _group.First().Value.Item1, _group => _group.Count());
+
+        
+        /*
+        Debug.Log("FindCardsToBeDestroyed\n");
+        foreach(var (key, value) in _cardElementsCountsInDestructionDictionary)
+        {
+            Debug.Log($"{key}: {value}");
+            if(key.pieces.Count <= value)
+                _cardsToBeDestroyed.Add(key);
+        }
+
+        // always check if the list has elements
+        Debug.Log("FindCardsToBeDestroyedList\n");
+        foreach (var item in _cardsToBeDestroyed)
+        {
+            Debug.Log(item);
+        }
+        */
     }
 
     // pos(x, y) = _coordinates[i, j] => (x, y) = (i, j)
@@ -158,7 +397,7 @@ public class JoinCards : MonoBehaviour
     // to the place of current card and put current card to the place of right card). Same thing is valid for the 
     // above and bottom cards.
 
-    private IEnumerator FindAdjacentPieces(CardElements _elements, int i, int j)
+    private void FindAdjacentPieces(CardElements _elements, int i, int j)
     {
         int _lineSize = _coordinates.GetLength(0);
         int _rowSize = _coordinates.GetLength(1);
@@ -194,8 +433,17 @@ public class JoinCards : MonoBehaviour
 
                 // piece and SpriteRenderer variales are global. So there is no need to pass them
                 //FindBottomAdjacentPiecesOfCards(_elements, _bottomCardElements);
-                StartCoroutine(FindBottomAdjacentPiecesOfCards(_elements, _bottomCardElements));
-                //FindBottomAdjacentPiecesOfCards(_elements, _bottomCardElements);
+
+
+
+
+                //open here
+                //StartCoroutine(FindBottomAdjacentPiecesOfCards(_elements, _bottomCardElements));
+                FindBottomAdjacentPiecesOfCards(_elements, _bottomCardElements);
+
+
+
+
 
                 //yield return new WaitForSeconds(0.2f);
                 // handle position changes because of the destruction
@@ -263,8 +511,16 @@ public class JoinCards : MonoBehaviour
                 //_rightCardPieces = new List<GameObject>(_rightCardElements.pieces);
                 //_rightCardPiecesSpriteRenderers = new List<SpriteRenderer>(_rightCardElements.piecesSpriteRenderers);
                 //FindRightAdjacentPiecesOfCards(_elements, _rightCardElements);
-                StartCoroutine(FindRightAdjacentPiecesOfCards(_elements, _rightCardElements));
-                //FindRightAdjacentPiecesOfCards(_elements, _rightCardElements);
+
+
+
+
+                //open here
+                //StartCoroutine(FindRightAdjacentPiecesOfCards(_elements, _rightCardElements));
+                FindRightAdjacentPiecesOfCards(_elements, _rightCardElements);
+
+
+
 
                 //yield return new WaitForSeconds(0.2f);
                 //if(_rightCardElements != null)
@@ -311,12 +567,16 @@ public class JoinCards : MonoBehaviour
 
         }
 
-        yield break;
+
+
+
+        //open here
+        //yield break;
     }
 
 
 
-    private IEnumerator FindBottomAdjacentPiecesOfCards(CardElements _elements, CardElements _bottomCardElements)
+    private void FindBottomAdjacentPiecesOfCards(CardElements _elements, CardElements _bottomCardElements)
     {
         // implement selection sort
         int _indexOfCurrentCardPiece = -1;
@@ -355,9 +615,19 @@ public class JoinCards : MonoBehaviour
                 _indexOfCurrentCardPiece = i;
                 _indexOfBottomAdjPiece = j;
 
+
+                //open here
+                /*
                 if (_isAnimating)
                 {
                     yield return new WaitForSeconds(.5f);
+                }
+                */
+
+                if (_bottomCardElements.pieces[j] == null || _elements.pieces[i] == null)
+                {
+                    Debug.Log(_bottomCardElements + " Piece null");
+                    continue;
                 }
 
 
@@ -630,7 +900,7 @@ public class JoinCards : MonoBehaviour
         }
     }
 
-    private IEnumerator FindRightAdjacentPiecesOfCards(CardElements _elements, CardElements _rightCardElements)
+    private void FindRightAdjacentPiecesOfCards(CardElements _elements, CardElements _rightCardElements)
     {
         // implement selection sort
 
@@ -669,10 +939,24 @@ public class JoinCards : MonoBehaviour
                 _indexOfCurrentCardPiece = i;
                 _indexOfRightAdjPiece = j;
 
+
+
+
+                //open here
+                /*
                 if (_isAnimating)
                 {
                     yield return new WaitForSeconds(.5f);
                 }
+                */
+
+
+                if(_rightCardElements.pieces[j] == null || _elements.pieces[i] == null)
+                {
+                    Debug.Log(_rightCardElements + " piece null");
+                    continue;
+                }
+
 
                 if (i >= _elements.pieces.Count)
                 {
@@ -1021,13 +1305,20 @@ public class JoinCards : MonoBehaviour
             HandleAdjacentPieces(_elements, _currentCardPiece, _currentCardPiecesList);
             HandleAdjacentPieces(_adjCardElements, _adjPiece, _adjCardPiecesList);
 
-            _joinPieces.DestroyPiece(_elements, _currentCardPiece);
-            _joinPieces.DestroyPiece(_adjCardElements, _adjPiece);
+            //_joinPieces.DestroyPiece(_elements, _currentCardPiece);
+            //_joinPieces.DestroyPiece(_adjCardElements, _adjPiece);
 
-            _toBeAnimatedAndDestroyed.Add(_toBeAnimatedAndDestroyedKeyID, (_elements, _currentCardPiece));
-            _toBeAnimatedAndDestroyedKeyID++;
-            _toBeAnimatedAndDestroyed.Add(_toBeAnimatedAndDestroyedKeyID, (_adjCardElements, _adjPiece));
-            _toBeAnimatedAndDestroyedKeyID++;
+            if(!_piecesToBeAnimatedAndDestroyed.ContainsValue((_elements, _currentCardPiece)))
+            {
+                _piecesToBeAnimatedAndDestroyed.Add(_toBeAnimatedAndDestroyedKeyID, (_elements, _currentCardPiece));
+                _toBeAnimatedAndDestroyedKeyID++;
+            }
+
+            if(!_piecesToBeAnimatedAndDestroyed.ContainsValue((_adjCardElements, _adjPiece)))
+            {
+                _piecesToBeAnimatedAndDestroyed.Add(_toBeAnimatedAndDestroyedKeyID, (_adjCardElements, _adjPiece));
+                _toBeAnimatedAndDestroyedKeyID++;
+            }
 
 
             /*
@@ -1103,9 +1394,13 @@ public class JoinCards : MonoBehaviour
             {
                 if (_siblingLocalPos == new Vector3(_localPosOfTargetPiece.x * -1, _localPosOfTargetPiece.y))
                 {
-                    _toBeAnimatedAndMerged.Add(_toBeAnimatedAndMergedKeyID, (_cardElements, _sibling, false));
-                    _toBeAnimatedAndMergedKeyID++;
-                    _joinPieces.MergePieces(_cardElements, _sibling, false);
+                    // move these conditions to upper tiers
+                    if(!_piecesToBeAnimatedAndMerged.ContainsValue((_cardElements, _sibling, false)))
+                    {
+                        _piecesToBeAnimatedAndMerged.Add(_toBeAnimatedAndMergedKeyID, (_cardElements, _sibling, false));
+                        _toBeAnimatedAndMergedKeyID++;
+                    }
+                    //_joinPieces.MergePieces(_cardElements, _sibling, false);
                     // call DestroyPiece immediate after
                 }
             }
@@ -1122,10 +1417,13 @@ public class JoinCards : MonoBehaviour
                 }
                 */
 
+                if(!_piecesToBeAnimatedAndMerged.ContainsValue((_cardElements, _sibling, true)))
+                {
+                    _piecesToBeAnimatedAndMerged.Add(_toBeAnimatedAndMergedKeyID, (_cardElements, _sibling, true));
+                    _toBeAnimatedAndMergedKeyID++;
+                }
 
-                _toBeAnimatedAndMerged.Add(_toBeAnimatedAndMergedKeyID, (_cardElements, _sibling, true));
-                _toBeAnimatedAndMergedKeyID++;
-                _joinPieces.MergePieces(_cardElements, _sibling, true);
+                //_joinPieces.MergePieces(_cardElements, _sibling, true);
                 // call DestroyPiece immediate after
             }
             else if (_countOfElementsPieces == 3 && _localPosOfTargetPiece.y == 0)
@@ -1143,9 +1441,13 @@ public class JoinCards : MonoBehaviour
                 // card consists of 3 pieces and rectangular piece (target piece itself) does not come here
                 // target piece must be destroyed and other 2 must be rescaled towards the target piece
 
-                _toBeAnimatedAndMerged.Add(_toBeAnimatedAndMergedKeyID, (_cardElements, _sibling, false));
-                _toBeAnimatedAndMergedKeyID++;
-                _joinPieces.MergePieces(_cardElements, _sibling, false);
+
+                if(!_piecesToBeAnimatedAndMerged.ContainsValue((_cardElements, _sibling, false)))
+                {
+                    _piecesToBeAnimatedAndMerged.Add(_toBeAnimatedAndMergedKeyID, (_cardElements, _sibling, false));
+                    _toBeAnimatedAndMergedKeyID++;
+                }
+                //_joinPieces.MergePieces(_cardElements, _sibling, false);
                 // call DestroyPiece for _currentCardPiece immediate after
             }
             // if piece to destroy is square not rectangular
@@ -1153,16 +1455,22 @@ public class JoinCards : MonoBehaviour
             {
                 if (_siblingLocalPos == new Vector3(_localPosOfTargetPiece.x * -1, _localPosOfTargetPiece.y))
                 {
-                    _toBeAnimatedAndMerged.Add(_toBeAnimatedAndMergedKeyID, (_cardElements, _sibling, false));
-                    _toBeAnimatedAndMergedKeyID++;
-                    _joinPieces.MergePieces(_cardElements, _sibling, false);
+                    if(!_piecesToBeAnimatedAndMerged.ContainsValue((_cardElements, _sibling, false)))
+                    {
+                        _piecesToBeAnimatedAndMerged.Add(_toBeAnimatedAndMergedKeyID, (_cardElements, _sibling, false));
+                        _toBeAnimatedAndMergedKeyID++;
+                    }
+                    //_joinPieces.MergePieces(_cardElements, _sibling, false);
                     // call DestroyPiece for _currentCardPiece immediate after
                 }
                 else if (_siblingLocalPos == new Vector3(_localPosOfTargetPiece.x, _localPosOfTargetPiece.y * -1))
                 {
-                    _toBeAnimatedAndMerged.Add(_toBeAnimatedAndMergedKeyID, (_cardElements, _sibling, true));
-                    _toBeAnimatedAndMergedKeyID++;
-                    _joinPieces.MergePieces(_cardElements, _sibling, true);
+                    if(!_piecesToBeAnimatedAndMerged.ContainsValue((_cardElements, _sibling, true)))
+                    {
+                        _piecesToBeAnimatedAndMerged.Add(_toBeAnimatedAndMergedKeyID, (_cardElements, _sibling, true));
+                        _toBeAnimatedAndMergedKeyID++;
+                    }
+                    //_joinPieces.MergePieces(_cardElements, _sibling, true);
                     // call DestroyPiece for _currentCardPiece immediate after
                 }
             }
@@ -1176,9 +1484,14 @@ public class JoinCards : MonoBehaviour
                 }
                 */
 
-                _toBeAnimatedAndMerged.Add(_toBeAnimatedAndMergedKeyID, (_cardElements, _sibling, true));
-                _toBeAnimatedAndMergedKeyID++;
-                _joinPieces.MergePieces(_cardElements, _sibling, true);
+
+                if(!_piecesToBeAnimatedAndMerged.ContainsValue((_cardElements, _sibling, true)))
+                {
+                    _piecesToBeAnimatedAndMerged.Add(_toBeAnimatedAndMergedKeyID, (_cardElements, _sibling, true));
+                    _toBeAnimatedAndMergedKeyID++;
+                }
+
+                //_joinPieces.MergePieces(_cardElements, _sibling, true);
                 // call DestroyPiece for _currentCardPiece immediate after
             }
             else if(_countOfElementsPieces == 2 && _localPosOfTargetPiece.y == 0)
@@ -1191,9 +1504,13 @@ public class JoinCards : MonoBehaviour
                 }
                 */
 
-                _toBeAnimatedAndMerged.Add(_toBeAnimatedAndMergedKeyID, (_cardElements, _sibling, false));
-                _toBeAnimatedAndMergedKeyID++;
-                _joinPieces.MergePieces(_cardElements, _sibling, false);
+
+                if(!_piecesToBeAnimatedAndMerged.ContainsValue((_cardElements, _sibling, false)))
+                {
+                    _piecesToBeAnimatedAndMerged.Add(_toBeAnimatedAndMergedKeyID, (_cardElements, _sibling, false));
+                    _toBeAnimatedAndMergedKeyID++;
+                }
+                //_joinPieces.MergePieces(_cardElements, _sibling, false);
                 // call DestroyPiece for _currentCardPiece immediate after
             }
             
@@ -1201,7 +1518,8 @@ public class JoinCards : MonoBehaviour
 
     }
 
-    private void DestroyCard(CardElements _cardToDestroy, int _coordinateX, int _coordinateY)
+    // move this method to up
+    public void DestroyCard(CardElements _cardToDestroy, int _coordinateX, int _coordinateY)
     {
         // wait for animations
         float _destroyingTime = 3f;
@@ -1220,8 +1538,11 @@ public class JoinCards : MonoBehaviour
 
             // anim
             // side effects???
-            Debug.Log("DestroyCard");
-            Destroy(_cardToDestroy.gameObject, _destroyingTime);
+            Debug.Log("DestroyCard: " + _cardToDestroy.name);
+            // open here
+            //Destroy(_cardToDestroy.gameObject, _destroyingTime);
+            // close here
+            Destroy(_cardToDestroy.gameObject);
 
             // set null _coordinates slot of _cardElements
             _positionHandler.SetCoordinatesArray(_coordinateX, _coordinateY, null);
@@ -1229,8 +1550,9 @@ public class JoinCards : MonoBehaviour
 
             if (_aboveCard != null)
             {
+                Debug.Log("Above: " + _aboveCard.name);
                 // think it again. It may be unnecessary assignment
-                if(!_hasChanged) _hasChanged = true;
+                if (!_hasChanged) _hasChanged = true;
                 // wait for the animations
                 //yield return new WaitForSeconds(_waitForAnimations);
                 //Debug.Log("out y: " + (_coordinateY + 1));
