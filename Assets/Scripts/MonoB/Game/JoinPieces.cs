@@ -91,7 +91,7 @@ public class JoinPieces : MonoBehaviour
         switch(_isVerticalAnimating)
         {
             case 0:
-                // _coroutineIDMerge prevents overcall of _joinCards.TravelCoordinateSystem
+               
                 if (_coroutineIDMerge > 0 && !_activeCoroutinesMerge[_coroutineIDMerge - 1])
                 {
                     //_joinCards.StartCoroutine("TravelCoordinateSystem");
@@ -153,8 +153,31 @@ public class JoinPieces : MonoBehaviour
             Debug.Log(key + ": " + value);
         }
 
+
+        Debug.Log("hmmm2");
+        foreach (var value in _cardsToBeDestroyed)
+        {
+            Debug.Log(": " + value);
+        }
+
+        Debug.Log("hmm3");
+        foreach(var (key, value) in _piecesTobeAnimatedAndDestroyed)
+        {
+            Debug.Log("Key: " + key);
+            Debug.Log("value.Item1: " + value.Item1);
+            Debug.Log("value.Item2: " + value.Item2);
+        }
+
         if (_toBeAnimatedAndMerged != null && _toBeAnimatedAndMerged.Count > 0)
             MergePieces(_toBeAnimatedAndMerged);
+
+
+        if ((_toBeAnimatedAndMerged == null || _toBeAnimatedAndMerged.Count == 0) &&
+            _cardsToBeDestroyed != null && _cardsToBeDestroyed.Count > 0)
+        {
+            Debug.Log("HEREEEEEEEEEEEEEEEEEEEEEEEEE");
+            StartCoroutine(ManageAnimations());
+        }
         //Display();
 
     }
@@ -503,6 +526,7 @@ public class JoinPieces : MonoBehaviour
     
     private IEnumerator ManageAnimations()
     {
+        // new gameobjects?????????????
         CardElements _parentOfPieceToDestroy = new CardElements();
         GameObject _lastPieceToDestroy = new GameObject();
         GameObject _lastPieceToEnlarge = new GameObject();
@@ -515,6 +539,8 @@ public class JoinPieces : MonoBehaviour
 
         _hasStoppedAnimating = false;
 
+        Debug.Log("at the Goal");
+
         if(_piecesTobeAnimatedAndDestroyed.Count > 0)
         {
             //Debug.Log("Animate and destroy piece");
@@ -525,13 +551,18 @@ public class JoinPieces : MonoBehaviour
                 {
                     _parentOfPieceToDestroy = _currentCad;
                     _lastPieceToDestroy = _piece;
-                    break;
+                    Debug.Log("inner _parentOfPieceToDestroy: " + _currentCad);
+                    Debug.Log("inner _lastPieceToDestroy: " + _piece);
+                    break; 
                 }
 
                 StartCoroutine(_animate.DestroyingAnimation(_currentCad, _piece));
 
                 _countOfElements++;
             }
+
+            Debug.Log("outer _parentOfPieceToDestroy: " + _parentOfPieceToDestroy);
+            Debug.Log("outer _lastPieceToDestroy: " + _lastPieceToDestroy);
 
             yield return StartCoroutine(_animate.DestroyingAnimation(_parentOfPieceToDestroy, _lastPieceToDestroy));
         }
@@ -567,13 +598,13 @@ public class JoinPieces : MonoBehaviour
 
         if (_cardsToBeDestroyed.Any())
         {
-            //Debug.Log("destroy card");
+            Debug.Log("destroy card: ");
             foreach(CardElements card in _cardsToBeDestroyed)
             {
                 // we assigned cards to _coordinates array relative to their local coordinates
                 
-                _coordinateX = (int)card.transform.localScale.x;
-                _coordinateY = (int)card.transform.localScale.y;
+                _coordinateX = (int)card.transform.localPosition.x;
+                _coordinateY = (int)card.transform.localPosition.y;
 
                 _joinCards.DestroyCard(card, _coordinateX, _coordinateY);
                 
@@ -1031,7 +1062,44 @@ public class JoinPieces : MonoBehaviour
 
     private void CheckForAnimations()
     {
-        
+        switch(_isVerticalAnimating)
+        {
+            case 0:
+                // _coroutineIDMerge prevents overcall of _joinCards.TravelCoordinateSystem
+                if (_hasStoppedAnimating && !_hasComeBefore)
+                {
+                    _hasComeBefore = true;
+                    _joinCards.TravelCoordinateSystem();
+
+                }
+
+                break;
+            // came from VerticalMover.cs
+            case 1:
+                /*
+                Debug.Log("_isVerticalAnimating" + _isVerticalAnimating);
+                Debug.Log("_hasStoppedAnimating" + _hasStoppedAnimating);
+                //Debug.Log("_hasComeBefore: " + _hasComeBefore);
+                */
+                Debug.Log("_isMoving: " + _isMoving);
+                Debug.Log("_hasStoppedAnimating" + _hasStoppedAnimating);
+
+                // if piece merging animations are running, wait for them
+                if (_hasStoppedAnimating && !_isMoving)
+                {
+
+
+                    _hasComeBefore = true;
+                    _isVerticalAnimating = 0;
+                    _joinCards.TravelCoordinateSystem();
+                    Debug.Log("DONE WITH NONE - PLAYABLE MOVE!!!");
+
+                }
+
+                break;
+            default:
+                break;
+        }
         if(_hasStoppedAnimating && !_hasComeBefore)
         {
             Debug.Log("CheckForAnimations");

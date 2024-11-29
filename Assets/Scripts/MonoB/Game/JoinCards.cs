@@ -75,6 +75,7 @@ public class JoinCards : MonoBehaviour
 
         _piecesToBeAnimatedAndMerged = new Dictionary<int, (CardElements, GameObject, bool)>(); 
         _piecesToBeAnimatedAndDestroyed = new Dictionary<int, (CardElements, GameObject)>();
+        _cardsToBeDestroyed = new List<CardElements>();
 
         //Debug.Log("TravelCoordinateSystem()");
         _isTravellingCoordinateSys = true;
@@ -119,12 +120,22 @@ public class JoinCards : MonoBehaviour
 
         _isTravellingCoordinateSys = false;
 
+        Debug.Log("\n\n");
+        Debug.Log("_toBeAnimatedAndDestroyed\n");
+        foreach (var value in _piecesToBeAnimatedAndDestroyed.Values)
+        {
+            Debug.Log("Card: " + value.Item1);
+            Debug.Log("piece: " + value.Item2);
+            Debug.Log("\n");
+        }
+
         CorrectTheScalesOfPieces();
         RemoveMatchingItemsFromToBeMergedDictionary();
         FindCardsToBeDestroyed();
 
         Debug.Log("\n\n");
         Debug.Log("_toBeAnimatedAndMerged\n");
+
         foreach(var value in _piecesToBeAnimatedAndMerged.Values)
         {
             Debug.Log("Card: " + value.Item1);
@@ -141,7 +152,6 @@ public class JoinCards : MonoBehaviour
             Debug.Log("piece: " + value.Item2);
             Debug.Log("\n");
         }
-
 
         _joinPieces.SetMergeInformations(_piecesToBeAnimatedAndMerged, _piecesToBeAnimatedAndDestroyed, 
             _cardsToBeDestroyed);
@@ -294,7 +304,7 @@ public class JoinCards : MonoBehaviour
             Debug.Log("Key item 2: " + _piecesToBeAnimatedAndMerged[key].Item2);
             Debug.Log("\n");
         }
-
+        */
         Debug.Log("\n");
         Debug.Log("Matching Keys: ");
         foreach (int key in _matchingKeys)
@@ -303,7 +313,7 @@ public class JoinCards : MonoBehaviour
             _piecesToBeAnimatedAndMerged.Remove(key);
             _toBeAnimatedAndMergedKeyID--;
         }
-        */
+        
 
     }
 
@@ -322,7 +332,7 @@ public class JoinCards : MonoBehaviour
             .ToDictionary(_group => _group.First().Value.Item1, _group => _group.Count());
 
         
-        /*
+        
         Debug.Log("FindCardsToBeDestroyed\n");
         foreach(var (key, value) in _cardElementsCountsInDestructionDictionary)
         {
@@ -330,7 +340,8 @@ public class JoinCards : MonoBehaviour
             if(key.pieces.Count <= value)
                 _cardsToBeDestroyed.Add(key);
         }
-
+        
+        /*
         // always check if the list has elements
         Debug.Log("FindCardsToBeDestroyedList\n");
         foreach (var item in _cardsToBeDestroyed)
@@ -1539,6 +1550,7 @@ public class JoinCards : MonoBehaviour
             // anim
             // side effects???
             Debug.Log("DestroyCard: " + _cardToDestroy.name);
+            Debug.Log("pos x: " + _coordinateX + " posy: " + _coordinateY);
             // open here
             //Destroy(_cardToDestroy.gameObject, _destroyingTime);
             // close here

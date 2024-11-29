@@ -78,6 +78,7 @@ public class VerticalMover : MonoBehaviour
         //Debug.Log(_cardToSlide + ": " + _nonePlayableDestinationPosY);
 
         //_coordinates[_coordinateXValue, _coordinateYValue] = null;
+        _joinPieces.IsVerticalAnimating = 1;
         _isNonePlayableMoving = true;
         SlideNonePlayableCardDown(_cardToSlide, _coordinateXValue, _coordinateYValue);
 
@@ -281,6 +282,9 @@ public class VerticalMover : MonoBehaviour
             _coordinateXValue,_coordinateYValue));
         //Debug.Log("Done sliding!!!!!");
 
+        // fix below, take time amount (time between animations) from JoinPieces.cs
+        yield return new WaitForSeconds(.25f);
+
         if(_isPlayableMoving)
         {
             Debug.Log("_isPlayableMoving false");
@@ -371,6 +375,7 @@ public class VerticalMover : MonoBehaviour
         AddCoroutinesToList();
         _coroutineID++;
         */
+        _joinPieces.IsVerticalAnimating = 1;
         _isPlayableMoving = true;
         StartCoroutine(ManageMovingAnimation(_cardToSlide.transform, _coordinateXValue, _dropZoneSize));
 
@@ -403,26 +408,47 @@ public class VerticalMover : MonoBehaviour
 
     private void CheckBusynessOfTravelCoordinateSys(bool _isFirstFromNonePlayable)
     {
-
+        /*
         if (!_joinCards.IsTravellingCoordinateSys && _joinPieces.HasStoppedAnimating && 
             _isFirstFromNonePlayable)
         {
             this._isFirstFromNonePlayable = false;
             _joinCards.TravelCoordinateSystem();
         }
+        */
+
+        if (_isFirstFromNonePlayable)
+        {
+
+            this._isFirstFromNonePlayable = false;
+            _joinPieces.IsMoving = false;
+            _joinPieces.IsVerticalAnimating = 1;
+            Debug.Log("DONE MOVING - none playable!!!");
+            //_activeMerge = false;
+        }
 
     }
 
     private void CheckBusynessOfTravelCoordinateSys()
     {
-
+        /*
         if (!_joinCards.IsTravellingCoordinateSys && _joinPieces.HasStoppedAnimating &&
             _isFirstFromPlayable)
         {
             _isFirstFromPlayable = false;
             _joinCards.TravelCoordinateSystem();
         }
+        */
 
+
+        if (_isFirstFromPlayable)
+        {
+            _isFirstFromPlayable = false;
+            _joinPieces.IsMoving = false;
+            _joinPieces.IsVerticalAnimating = 1;
+            Debug.Log("DONE MOVING - playable!!!");
+            //_activeMerge = false;
+        }
     }
 
     private void AddCoroutinesToList()
