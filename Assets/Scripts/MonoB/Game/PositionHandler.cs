@@ -9,15 +9,11 @@ public class PositionHandler : MonoBehaviour
     // hold the playable card while it is at the top of the playable zone
     private CardElements _playableInstance;
 
-
-
     private void Start()
     {
-        //_dropZoneHeight = _gridManager.DropZoneSize;
-        //_coordinates = new GameObject[_dropZoneHeight, _dropZoneHeight];
+
     }
 
-    // you can init it here
     public void InitializeCoordinatesArray(int i, int j)
     {
         _coordinates = new CardElements[i, j];

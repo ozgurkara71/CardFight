@@ -6,7 +6,6 @@ using UnityEngine;
 
 public class Animate : MonoBehaviour
 {
-
     [SerializeField] private JoinPieces _joinPieces;
     [SerializeField] private JoinCards _joinCards;
 
@@ -19,11 +18,6 @@ public class Animate : MonoBehaviour
     void Update()
     {
         
-    }
-
-    public IEnumerator ManageAnimations()
-    {
-        yield break;
     }
 
     public IEnumerator EnlargingAnimation(GameObject _piece,
@@ -81,7 +75,7 @@ public class Animate : MonoBehaviour
             yield return new WaitForSeconds(_enlargingVelocity);
 
 
-            // does this not null contidition hide some side effects???
+            // does this not null contidition hide some side effects??? it is so expensive
             /*
             if (_piece.gameObject == null)
                 yield return null;
@@ -103,7 +97,6 @@ public class Animate : MonoBehaviour
     {
         Vector3 _startingLocalScale = _piece.transform.localScale;
         Vector3 _shrinkingLocalScale = _startingLocalScale / 3.5f;
-        float _rescalingVariable = 0.01f;
         //Vector3 _fromLocalScale = _piece.transform.localScale;
         //Vector3 _fromLocalPos;
         float _rescalingFactor = 10f;
@@ -147,10 +140,8 @@ public class Animate : MonoBehaviour
                 _piece.transform.localScale = Vector3.LerpUnclamped(_shrinkingLocalScale,
                     _startingLocalScale, _upperBound);
 
-
                 //Destroy(_piece);
                 _joinPieces.DestroyPiece(_parentOfPiece, _piece);
-
 
                 yield break;
             }
@@ -162,10 +153,6 @@ public class Animate : MonoBehaviour
        int _coordinateYValue)
     {
         // Destroy may destroy the piece before MergePieces
-
-        
-
-
 
         Vector3 _from = _cardToSlide.transform.localPosition;
         Vector3 _to = new Vector3(_coordinateXValue, _coordinateYValue - 1);
@@ -191,9 +178,6 @@ public class Animate : MonoBehaviour
                 _cardToSlide.localPosition = Vector3.LerpUnclamped(_from, _to, _interpolant);
             }
 
-            //Debug.Log("_interpolant: " + _interpolant);
-
-            //Debug.Log("Enlarge: " + _piece.transform.parent.name + ": " + _piece.transform.name);
 
             if (_interpolant >= _upperBound)
             {
@@ -211,9 +195,6 @@ public class Animate : MonoBehaviour
             _elapsedTime += Time.deltaTime;
             if (_hasOverShot && _interpolant <= 1)
             {
-                //Debug.Log("Enlarge - yield break enter: " + _piece.transform.name + " - " + 
-                //_piece.transform.localScale + " - " + _piece.transform.localPosition);
-
                 _cardToSlide.localPosition = Vector3.LerpUnclamped(_from, _to, 1);
 
                 yield break;
