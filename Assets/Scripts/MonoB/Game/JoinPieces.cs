@@ -67,19 +67,20 @@ public class JoinPieces : MonoBehaviour
         this._piecesTobeAnimatedAndDestroyed = _piecesToBeAnimatedAndDestroyed;
         this._cardsToBeDestroyed = _cardsToBeDestroyed;
 
+        /*
         Debug.Log("hmmm");
         foreach (var (key, value) in _toBeAnimatedAndMerged)
         {
             Debug.Log(key + ": " + value);
         }
 
-
+        
         Debug.Log("hmmm2");
         foreach (var value in _cardsToBeDestroyed)
         {
             Debug.Log(": " + value);
         }
-
+        
         Debug.Log("hmm3");
         foreach(var (key, value) in _piecesTobeAnimatedAndDestroyed)
         {
@@ -87,7 +88,7 @@ public class JoinPieces : MonoBehaviour
             Debug.Log("value.Item1: " + value.Item1);
             Debug.Log("value.Item2: " + value.Item2);
         }
-
+        */
         if (_toBeAnimatedAndMerged != null && _toBeAnimatedAndMerged.Count > 0)
             MergePieces(_toBeAnimatedAndMerged);
 
@@ -283,6 +284,7 @@ public class JoinPieces : MonoBehaviour
 
         _hasStoppedAnimating = false;
 
+        // destroying anim
         if(_piecesTobeAnimatedAndDestroyed.Count > 0)
         {
             //Debug.Log("Animate and destroy piece");
@@ -306,6 +308,7 @@ public class JoinPieces : MonoBehaviour
 
         yield return new WaitForSeconds(_timeBetweenAnimations);
 
+        // merging anim
         if(_piecesToBeAnimatedAndMerged.Count > 0)
         {
             _countOfElements = 0;
@@ -347,6 +350,7 @@ public class JoinPieces : MonoBehaviour
             }
         }
 
+        // here should wait for none playable drops
         yield return new WaitForSeconds(_timeBetweenAnimations);
 
         _hasComeBefore = false;
@@ -451,8 +455,8 @@ public class JoinPieces : MonoBehaviour
                 break;
             // came from VerticalMover.cs
             case 1:
-                Debug.Log("_isMoving: " + _isMoving);
-                Debug.Log("_hasStoppedAnimating" + _hasStoppedAnimating);
+                //Debug.Log("_isMoving: " + _isMoving);
+                //Debug.Log("_hasStoppedAnimating" + _hasStoppedAnimating);
 
                 // if piece merging animations are running, wait for them
                 if (_hasStoppedAnimating && !_isMoving)
@@ -460,7 +464,7 @@ public class JoinPieces : MonoBehaviour
                     _hasComeBefore = true;
                     _isVerticalAnimating = 0;
                     _joinCards.TravelCoordinateSystem();
-                    Debug.Log("DONE WITH NONE - PLAYABLE MOVE!!!");
+                    //Debug.Log("DONE WITH NONE - PLAYABLE MOVE!!!");
                 }
 
                 break;
@@ -469,7 +473,7 @@ public class JoinPieces : MonoBehaviour
         }
         if(_hasStoppedAnimating && !_hasComeBefore)
         {
-            Debug.Log("CheckForAnimations");
+            //Debug.Log("CheckForAnimations");
             _joinCards.TravelCoordinateSystem();
             _hasComeBefore = true;
             _hasStoppedAnimating = true;

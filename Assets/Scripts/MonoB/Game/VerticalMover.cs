@@ -15,8 +15,8 @@ public class VerticalMover : MonoBehaviour
 
     private bool _isPlayableMoving = false;
     private bool _isNonePlayableMoving = false;
-    private bool _isFirstFromPlayable = false;
-    private bool _isFirstFromNonePlayable = false;
+    private bool _isComingFirstTimeFromPlayable = false;
+    private bool _isComingFirstTimeFromNonePlayable = false;
 
 
     void Start()
@@ -30,7 +30,7 @@ public class VerticalMover : MonoBehaviour
 
     void Update()
     {
-        CheckBusynessOfTravelCoordinateSys(_isFirstFromNonePlayable);
+        CheckBusynessOfTravelCoordinateSys(_isComingFirstTimeFromNonePlayable);
         CheckBusynessOfTravelCoordinateSys();
     }
 
@@ -85,6 +85,9 @@ public class VerticalMover : MonoBehaviour
     private IEnumerator ManageMovingAnimation(Transform _cardToSlide, int _coordinateXValue,
         int _coordinateYValue)
     {
+        //if card is in _toBeAnimatedAndDestroyed dict, it doesn't needed to be sliding down
+
+
         yield return StartCoroutine(_animate.ChangeLocalPositionOfCard(_cardToSlide, 
             _coordinateXValue,_coordinateYValue));
         //Debug.Log("Done sliding!!!!!");
@@ -94,15 +97,15 @@ public class VerticalMover : MonoBehaviour
 
         if(_isPlayableMoving)
         {
-            Debug.Log("_isPlayableMoving false");
-            _isFirstFromPlayable = true;
+            //Debug.Log("_isPlayableMoving false");
+            _isComingFirstTimeFromPlayable = true;
             _isPlayableMoving = false;
         }
         
         if(_isNonePlayableMoving)
         {
-            Debug.Log("_isNonePlayableMoving false");
-            _isFirstFromNonePlayable = true;
+            //Debug.Log("_isNonePlayableMoving false");
+            _isComingFirstTimeFromNonePlayable = true;
             _isNonePlayableMoving = false;
         }
     }
@@ -119,39 +122,40 @@ public class VerticalMover : MonoBehaviour
 
         _joinPieces.IsVerticalAnimating = 1;
         _isPlayableMoving = true;
+        // from top to top of drop zone
         StartCoroutine(ManageMovingAnimation(_cardToSlide.transform, _coordinateXValue, _dropZoneSize));
 
         Vector3 _currentPos = _cardToSlide.transform.localPosition;
         _playableDestinationPosY = (int)_currentPos.y;
 
-
+        // from top of drop zone to it's destination
         SlidePlayableCardDown(_cardToSlide, _coordinateXValue, _dropZoneSize - 1);
 
         return;
     }
 
 
+    // fix following methods. There should be one method for playable sliding or none playable sliding
     private void CheckBusynessOfTravelCoordinateSys(bool _isFirstFromNonePlayable)
     {
         if (_isFirstFromNonePlayable)
         {
-
-            this._isFirstFromNonePlayable = false;
+            this._isComingFirstTimeFromNonePlayable = false;
             _joinPieces.IsMoving = false;
             _joinPieces.IsVerticalAnimating = 1;
-            Debug.Log("DONE MOVING - none playable!!!");
+            //Debug.Log("DONE MOVING - none playable!!!");
         }
 
     }
 
     private void CheckBusynessOfTravelCoordinateSys()
     {
-        if (_isFirstFromPlayable)
+        if (_isComingFirstTimeFromPlayable)
         {
-            _isFirstFromPlayable = false;
+            _isComingFirstTimeFromPlayable = false;
             _joinPieces.IsMoving = false;
             _joinPieces.IsVerticalAnimating = 1;
-            Debug.Log("DONE MOVING - playable!!!");
+            //Debug.Log("DONE MOVING - playable!!!");
         }
     }
 }

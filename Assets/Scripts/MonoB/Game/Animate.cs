@@ -167,10 +167,12 @@ public class Animate : MonoBehaviour
         while (true)
         {
             // side effects???
+            /*
             if (_cardToSlide.gameObject == null)
             {
                 yield break;
             }
+            */
 
             if (!_hasOverShot)
             {

@@ -67,6 +67,7 @@ public class JoinCards : MonoBehaviour
 
         _isTravellingCoordinateSys = false;
 
+        
         Debug.Log("\n\n");
         Debug.Log("_toBeAnimatedAndDestroyed\n");
         foreach (var value in _piecesToBeAnimatedAndDestroyed.Values)
@@ -80,6 +81,7 @@ public class JoinCards : MonoBehaviour
         RemoveMatchingItemsFromToBeMergedDictionary();
         FindCardsToBeDestroyed();
 
+        /*
         Debug.Log("\n\n");
         Debug.Log("_toBeAnimatedAndMerged\n");
 
@@ -99,11 +101,13 @@ public class JoinCards : MonoBehaviour
             Debug.Log("piece: " + value.Item2);
             Debug.Log("\n");
         }
+        */
 
         _joinPieces.SetMergeInformations(_piecesToBeAnimatedAndMerged, _piecesToBeAnimatedAndDestroyed, 
             _cardsToBeDestroyed);
     }
 
+    // decide which piece will enlarge to which direction
     private void CorrectTheScalesOfPieces()
     {
         CardElements _currentCard;
@@ -220,8 +224,8 @@ public class JoinCards : MonoBehaviour
 
         foreach (var _pieceToBeDestroyed in _piecesToBeAnimatedAndDestroyed.Values)
         {
-            Debug.Log("_pieceToBeDestroyed: " + _pieceToBeDestroyed);
-            Debug.Log("\n");
+            //Debug.Log("_pieceToBeDestroyed: " + _pieceToBeDestroyed);
+            //Debug.Log("\n");
             // pair describes every Key, Value pair of the related dictionary
             _matchingKeys.AddRange(_piecesToBeAnimatedAndMerged.Where(_pair => _pair.Value.Item1.Equals( 
                 _pieceToBeDestroyed.Item1) && _pair.Value.Item2.Equals(
@@ -229,11 +233,11 @@ public class JoinCards : MonoBehaviour
             // Equals instead of, because we need to check values, not references in case of references
         }
 
-        Debug.Log("\n");
-        Debug.Log("Matching Keys: ");
+        //Debug.Log("\n");
+        //Debug.Log("Matching Keys: ");
         foreach (int key in _matchingKeys)
         {
-            Debug.Log("Key: " + key);
+            //Debug.Log("Key: " + key);
             _piecesToBeAnimatedAndMerged.Remove(key);
             _toBeAnimatedAndMergedKeyID--;
         }
@@ -248,7 +252,7 @@ public class JoinCards : MonoBehaviour
         // we know that pieces to be destroyed are in the _toBeAnimatedAndDestroyed.
         // For example Card3 has 3 pieces and 2 of them are to be destroyed during loop
         // These 2 pieces are being stored in the _toBeAnimatedAndDestroyed.
-        // If all pieces of a card are in his dictionary, this means there is no piece left on this card
+        // If all pieces of a card are in this dictionary, this means there is no piece left on this card
         // and this card has to be destroyed
 
         Dictionary<CardElements, int> _cardElementsCountsInDestructionDictionary = _piecesToBeAnimatedAndDestroyed
@@ -257,10 +261,10 @@ public class JoinCards : MonoBehaviour
 
         
         
-        Debug.Log("FindCardsToBeDestroyed\n");
+        //Debug.Log("FindCardsToBeDestroyed\n");
         foreach(var (key, value) in _cardElementsCountsInDestructionDictionary)
         {
-            Debug.Log($"{key}: {value}");
+            //Debug.Log($"{key}: {value}");
             if(key.pieces.Count <= value)
                 _cardsToBeDestroyed.Add(key);
         }
@@ -340,7 +344,7 @@ public class JoinCards : MonoBehaviour
 
 
 
-
+                /*
                 // check following ifs and remove them (sometimes it executes Debug.Log(what))
                 if (_bottomCardElements.pieces.Count == 0)
                 {
@@ -356,7 +360,7 @@ public class JoinCards : MonoBehaviour
                     Debug.Log("WHATT!!!" + _elements + " " + i + ", " + j);
                     
                 }
-
+                */
             }
 
             if( _rightCardElements != null)
@@ -365,6 +369,7 @@ public class JoinCards : MonoBehaviour
 
                 FindRightAdjacentPiecesOfCards(_elements, _rightCardElements);
 
+                /*
                 if (_rightCardElements.pieces.Count == 0)
                 {
                     DestroyCard(_rightCardElements, _iValueOfRightCard, j);
@@ -376,17 +381,12 @@ public class JoinCards : MonoBehaviour
 
                     DestroyCard(_elements, i, j);
 
-                    /*
-                    Debug.Log("right curr is deleted. Above: " + _aboveCard);
-                    
-                    if (_aboveCard != null)
-                    {
-                        _verticalMover.SlideCardDown(_aboveCard, i, j);
-                    }
-                    */
+                  
                     // set null _coordinates slot of _elements (_elements)
                     //_positionHandler.SetCoordinatesArray(i, j, null);
                 }
+                */
+
             }
 
         }
@@ -1041,6 +1041,12 @@ public class JoinCards : MonoBehaviour
             if (_aboveCard != null)
             {
                 Debug.Log("Above: " + _aboveCard.name);
+                if(_cardsToBeDestroyed.Contains(_aboveCard))
+                {
+                    Debug.Log("_above is being destroyed");
+                    return;
+                }
+
                 // think it again. It may be unnecessary assignment
                 if (!_hasChanged) _hasChanged = true;
                 _verticalMover.InitializeNonePlayableCardLocalPos(_aboveCard, _coordinateX, _coordinateY + 1);
