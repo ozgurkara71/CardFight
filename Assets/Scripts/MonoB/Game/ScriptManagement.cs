@@ -15,6 +15,7 @@ public class ScriptManagement : MonoBehaviour
     [SerializeField] private JoinCards _joinCards;
     [SerializeField] private JoinPieces _joinPieces;
     [SerializeField] private VerticalMover _verticalMover;
+    [SerializeField] private RemainingMoves _remainingMoves;
 
     // Singleton design pattern:
     private void Awake()
@@ -40,6 +41,5 @@ public class ScriptManagement : MonoBehaviour
     public JoinCards GetJoinCards() { return _joinCards; }
     public JoinPieces GetJoinPieces() { return _joinPieces; }
     public VerticalMover GetVerticalMover() { return _verticalMover; }
-
-
+    public RemainingMoves GetRemainingMoves() { return _remainingMoves; }
 }

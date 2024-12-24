@@ -67,7 +67,7 @@ public class JoinCards : MonoBehaviour
 
         _isTravellingCoordinateSys = false;
 
-        
+        /*
         Debug.Log("\n\n");
         Debug.Log("_toBeAnimatedAndDestroyed\n");
         foreach (var value in _piecesToBeAnimatedAndDestroyed.Values)
@@ -76,6 +76,7 @@ public class JoinCards : MonoBehaviour
             Debug.Log("piece: " + value.Item2);
             Debug.Log("\n");
         }
+        */
 
         CorrectTheScalesOfPieces();
         RemoveMatchingItemsFromToBeMergedDictionary();
@@ -903,9 +904,11 @@ public class JoinCards : MonoBehaviour
         {
             _hasChanged = true;
 
+            /*
             Debug.Log("\n\n");
             Debug.Log("In: " + _elements + ": " + _currentCardPiece + " / " + _adjCardElements +
                      ": " + _adjPiece);
+            */
 
             HandleAdjacentPieces(_elements, _currentCardPiece);
             HandleAdjacentPieces(_adjCardElements, _adjPiece);

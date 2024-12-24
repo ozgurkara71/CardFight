@@ -11,6 +11,7 @@ public class JoinPieces : MonoBehaviour
     [SerializeField] private PositionHandler _positionHandler;
     [SerializeField] private JoinCards _joinCards;
     [SerializeField] private GridManager _gridManager;
+    [SerializeField] private RemainingTargets _remainingTargets;
     [SerializeField] private Animate _animate;
 
     private CardElements[,] _coordinates;
@@ -96,9 +97,11 @@ public class JoinPieces : MonoBehaviour
         if ((_toBeAnimatedAndMerged == null || _toBeAnimatedAndMerged.Count == 0) &&
             _cardsToBeDestroyed != null && _cardsToBeDestroyed.Count > 0)
         {
+            // you may want to look at dict.Clear vs new dict
+            _piecesTobeAnimatedAndDestroyed.Clear();
+
             StartCoroutine(ManageAnimations());
         }
-
     }
 
     public void UpdatePlayableCardInstance()
@@ -149,8 +152,8 @@ public class JoinPieces : MonoBehaviour
                             {
                                 DestroyPiece(_elements, _pieceJ);
                             }
-                            MergePieces(_elements, _pieceI, _isVertical);
 
+                            MergePieces(_elements, _pieceI, _isVertical);
                         }
                     }
                     else if (new Vector3(_positionI.x, _positionI.y * -1) == _positionJ) // vertical merge
@@ -180,7 +183,7 @@ public class JoinPieces : MonoBehaviour
 
     public void MergePieces(CardElements _currentCardElements, GameObject _piece, bool _isVertical)
     {
-        Debug.Log("Merge: " + _piece.transform.parent.name + ": " + _piece.transform.name);
+        //Debug.Log("Merge: " + _piece.transform.parent.name + ": " + _piece.transform.name);
         
         Vector3 _pieceLocalPos = _piece.transform.localPosition;
         Vector3 _pieceLocalScale = _piece.transform.localScale;
@@ -282,16 +285,25 @@ public class JoinPieces : MonoBehaviour
         int _countOfElements = 0;
         float _timeBetweenAnimations = .25f;
 
+        //int _countOfPiecesToBeDestroyed = _piecesTobeAnimatedAndDestroyed.Values.Count;
+        int _countOfPiecesToBeDestroyed = _piecesTobeAnimatedAndDestroyed.Count;
+
+        //Debug.Log("_countOfPiecesToBeDestroyed: " + _countOfPiecesToBeDestroyed);
+        //Debug.Log("_countOfPiecesToBeDestroyed2: " + _countOfPiecesToBeDestroyed2);
+
         _hasStoppedAnimating = false;
 
         // destroying anim
-        if(_piecesTobeAnimatedAndDestroyed.Count > 0)
+        // replace following computing with upper variable
+        //if(_piecesTobeAnimatedAndDestroyed.Count > 0)
+        if(_countOfPiecesToBeDestroyed > 0)
         {
             //Debug.Log("Animate and destroy piece");
+            _remainingTargets.DecreaseRemainingTargets(_countOfPiecesToBeDestroyed);
 
             foreach((CardElements _currentCad, GameObject _piece) in _piecesTobeAnimatedAndDestroyed.Values)
             {
-                if(_countOfElements == _piecesTobeAnimatedAndDestroyed.Count - 1)
+                if(_countOfElements == _countOfPiecesToBeDestroyed - 1)
                 {
                     _parentOfPieceToDestroy = _currentCad;
                     _lastPieceToDestroy = _piece;
@@ -337,7 +349,7 @@ public class JoinPieces : MonoBehaviour
 
         if (_cardsToBeDestroyed.Any())
         {
-            Debug.Log("destroy card: ");
+            //Debug.Log("destroy card: ");
             foreach(CardElements card in _cardsToBeDestroyed)
             {
                 // we assigned cards to _coordinates array relative to their local coordinates

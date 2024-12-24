@@ -6,10 +6,12 @@ using UnityEngine;
 public class HorizontalMover : MonoBehaviour
 {
     // change instance
+    // change it from public to private
     public CardElements playableCardInstance;
     private GridManager _grid;
     private CardSpawner _spawner;
     private VerticalMover _verticalMover;
+    private RemainingMoves _remainingMoves;
 
     private Transform _dropParent;
     private bool _isHovering = false;
@@ -21,6 +23,7 @@ public class HorizontalMover : MonoBehaviour
         _grid = ScriptManagement.Instance.GetGridManager();
         _spawner = ScriptManagement.Instance.GetCardSpawner();
         _verticalMover = ScriptManagement.Instance.GetVerticalMover();
+        _remainingMoves = ScriptManagement.Instance.GetRemainingMoves();
 
         _dropParent = _grid.DropZoneTilesParent;
         // fix following line(getchild seems dangerous)
@@ -41,6 +44,8 @@ public class HorizontalMover : MonoBehaviour
         // card should move down if there is not card underneath. Condition must also be satisfied after the clciks
         if(Input.GetMouseButtonDown(0) && _isHovering)
         {
+            _remainingMoves.DecreaseRemainingMoves();
+
             // i pasted following line from VerticalMovement to here to execute once
             transform.localPosition = new Vector3(Mathf.Round(transform.localPosition.x),
                 transform.localPosition.y, transform.localPosition.z);
