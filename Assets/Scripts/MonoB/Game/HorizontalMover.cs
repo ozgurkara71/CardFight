@@ -12,6 +12,8 @@ public class HorizontalMover : MonoBehaviour
     private CardSpawner _spawner;
     private VerticalMover _verticalMover;
     private RemainingMoves _remainingMoves;
+    private EndGameHandler _endGameHandler;
+    private RemainingTargets _remainingTargets;
 
     private Transform _dropParent;
     private bool _isHovering = false;
@@ -24,18 +26,22 @@ public class HorizontalMover : MonoBehaviour
         _spawner = ScriptManagement.Instance.GetCardSpawner();
         _verticalMover = ScriptManagement.Instance.GetVerticalMover();
         _remainingMoves = ScriptManagement.Instance.GetRemainingMoves();
+        _endGameHandler = ScriptManagement.Instance.GetEndGameHandler();
+        _remainingTargets = ScriptManagement.Instance.GetRemainingTargets();
 
         _dropParent = _grid.DropZoneTilesParent;
         // fix following line(getchild seems dangerous)
         // change with tag the following lines
+
         _startPointX = _dropParent.GetChild(0).position.x;
         _endPointX = _dropParent.GetChild(_grid.DropZoneSize - 1).position.x;
-
     }
 
 
     void Update()
     {
+        if (_endGameHandler.HasPaused) return;
+
         if (_isHovering)
         {
             HorizontalMovement();
@@ -58,6 +64,8 @@ public class HorizontalMover : MonoBehaviour
                 (int)transform.localPosition.x);
 
             _spawner.InitPlayableCards();
+
+            _remainingTargets.SetHasClicked();
         }
     }
 

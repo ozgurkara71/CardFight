@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
 
 public class ScriptManagement : MonoBehaviour
@@ -16,6 +17,8 @@ public class ScriptManagement : MonoBehaviour
     [SerializeField] private JoinPieces _joinPieces;
     [SerializeField] private VerticalMover _verticalMover;
     [SerializeField] private RemainingMoves _remainingMoves;
+    [SerializeField] private EndGameHandler _endGameHandler;
+    [SerializeField] private RemainingTargets _remainingTargets;
 
     // Singleton design pattern:
     private void Awake()
@@ -28,10 +31,15 @@ public class ScriptManagement : MonoBehaviour
         }
         else
         {
-            // scripts can not be destroyed. Only GameObjects can be destroyed (or it's components but Transform)
+            // scripts can not be destroyed. Only GameObjects can be destroyed (or its' components but Transform)
             Destroy(gameObject);
         }
     }
+
+    // when every scene reload (or load?), singleton keeps it's existance but its' references doesn't. If we destroy singleton, it refreshes
+    // its' references everytime:) link:
+    // https://discussions.unity.com/t/singleton-references-when-changing-scene/813159/2
+    public void DestroyThyself() { Destroy(gameObject); Instance = null; }
     // -----------------------------------------------------------------------------------------------------------
 
     public GridManager GetGridManager() { return _gridManager; }
@@ -42,4 +50,6 @@ public class ScriptManagement : MonoBehaviour
     public JoinPieces GetJoinPieces() { return _joinPieces; }
     public VerticalMover GetVerticalMover() { return _verticalMover; }
     public RemainingMoves GetRemainingMoves() { return _remainingMoves; }
+    public EndGameHandler GetEndGameHandler() {  return _endGameHandler; }
+    public RemainingTargets GetRemainingTargets() {  return _remainingTargets; }
 }

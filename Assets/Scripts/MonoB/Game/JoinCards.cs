@@ -296,6 +296,7 @@ public class JoinCards : MonoBehaviour
         }
     }
 
+    // refactor following method, make _lineSize global and remove it from parameters of the FindAboveCard
     private CardElements FindAboveCard(int i, int j, int _lineSize)
     {
         if (j < _lineSize - 1)
@@ -418,11 +419,13 @@ public class JoinCards : MonoBehaviour
 
                 if (i >= _elements.pieces.Count)
                 {
+                    Debug.LogWarning("i >= _elements.pieces.Count");
                     break;
                 }
 
                 if(j >= _bottomCardElements.pieces.Count)
-                {   
+                {
+                    Debug.LogWarning("j >= _bottomCardElements.pieces.Count");
                     break;
                 }
 
@@ -1034,6 +1037,7 @@ public class JoinCards : MonoBehaviour
             // fix _lineSize
             CardElements _aboveCard = FindAboveCard(_coordinateX, _coordinateY, 6);
 
+            //Debug.Log("Above: " + _aboveCard + " Self: " + _cardToDestroy);
             // close here
             Destroy(_cardToDestroy.gameObject);
 
@@ -1043,10 +1047,11 @@ public class JoinCards : MonoBehaviour
 
             if (_aboveCard != null)
             {
-                Debug.Log("Above: " + _aboveCard.name);
+                //Debug.Log("Above: " + _aboveCard.name);
                 if(_cardsToBeDestroyed.Contains(_aboveCard))
                 {
                     Debug.Log("_above is being destroyed");
+                    Debug.Log("Above: " + _aboveCard + " Self: " + _cardToDestroy);
                     return;
                 }
 

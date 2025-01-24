@@ -722,8 +722,8 @@ MonoBehaviour:
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4282373202
-  m_fontColor: {r: 0.3204942, g: 0.8301887, b: 0.24592379, a: 1}
+    rgba: 4282571084
+  m_fontColor: {r: 0.29803923, g: 0.8509804, b: 0.25882354, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
   m_fontColorGradient:
@@ -1905,7 +1905,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _endGameHandler: {fileID: 307821031}
   _remainingMoves: {fileID: 369307748}
-  _movesCount: 10
+  _movesCount: 13
   _gameOverMessege: You are out of moves!
 --- !u!1 &1393126455
 GameObject:
@@ -2015,7 +2015,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 0.29621813, g: 0.8490566, b: 0.25952294, a: 1}
+  m_Color: {r: 0.29803923, g: 0.8509804, b: 0.25882354, a: 1}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -2148,7 +2148,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 0.8, g: 0.42793047, b: 0.109803915, a: 1}
+  m_Color: {r: 0.8, g: 0.42745098, b: 0.10980392, a: 1}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -3145,7 +3145,7 @@ MonoBehaviour:
   _remainingTargets: {fileID: 1680507989}
   _endGameHandler: {fileID: 307821031}
   _confettEffecti: {fileID: 444523566}
-  _targetsCount: 25
+  _targetsCount: 65
 --- !u!1 &2050880219
 GameObject:
   m_ObjectHideFlags: 0

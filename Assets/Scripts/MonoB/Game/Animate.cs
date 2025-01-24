@@ -149,8 +149,7 @@ public class Animate : MonoBehaviour
 
     }
 
-    public IEnumerator ChangeLocalPositionOfCard(Transform _cardToSlide, int _coordinateXValue,
-       int _coordinateYValue)
+    public IEnumerator ChangeLocalPositionOfCard(Transform _cardToSlide, int _coordinateXValue, int _coordinateYValue)
     {
         // Destroy may destroy the piece before MergePieces
 
@@ -158,7 +157,7 @@ public class Animate : MonoBehaviour
         Vector3 _to = new Vector3(_coordinateXValue, _coordinateYValue - 1);
         float _rescalingFactor = 10f;
         float _droppingVelocity = 0.01f;
-        float _elapsedTime = 0;
+        //float _elapsedTime = 0;
         float _interpolant = 0;
         bool _hasOverShot = false;
         const float _upperBound = 1.1f;
@@ -192,9 +191,10 @@ public class Animate : MonoBehaviour
                 _cardToSlide.localPosition = Vector3.LerpUnclamped(_from, _to, _interpolant);
             }
 
+
             yield return new WaitForSeconds(_droppingVelocity);
 
-            _elapsedTime += Time.deltaTime;
+            //_elapsedTime += Time.deltaTime;
             if (_hasOverShot && _interpolant <= 1)
             {
                 _cardToSlide.localPosition = Vector3.LerpUnclamped(_from, _to, 1);

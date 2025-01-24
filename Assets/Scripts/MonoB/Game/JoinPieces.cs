@@ -1,7 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using System.Xml.Linq;
 using UnityEngine;
 
 public class JoinPieces : MonoBehaviour
@@ -25,11 +24,21 @@ public class JoinPieces : MonoBehaviour
     private bool _isMoving = false;
     private bool _hasDestroyedAtStart = false;
     private bool _hasEnlargedAtStart = false;
+
+    // i think you should reverse following values of _isVerticalAnimating, it is not running moving anim when it is set to 1
+
+    // correction: 0 means card is not moving, you can call TraveCoordinateSys after merging anim
+    // 1 means card done with moving, wait if there is merging anim
+
     // _isVerticalAnimating = 0 -> card is not moving
     // _isVerticalAnimating = 1 -> card is moving, wait for animation
     private int _isVerticalAnimating;
+
     private bool _hasStoppedAnimating = false;
     private bool _hasComeBefore = true;
+
+    private bool _hasAnimatedAtStart = false;
+    private bool _hasMergedAtStart = false;
 
     private Dictionary<int, (CardElements, GameObject)> _piecesTobeAnimatedAndDestroyed = 
         new Dictionary<int, (CardElements, GameObject)>();
@@ -65,43 +74,69 @@ public class JoinPieces : MonoBehaviour
         Dictionary<int, (CardElements, GameObject)> _piecesToBeAnimatedAndDestroyed, List<CardElements> 
         _cardsToBeDestroyed)
     {
+        // reset _piecesToBeAnimatedAndMerged here, it will be filled if it should be
+        _piecesToBeAnimatedAndMerged = new Dictionary<(CardElements, GameObject), (Vector3, Vector3, Vector3)>();
         this._piecesTobeAnimatedAndDestroyed = _piecesToBeAnimatedAndDestroyed;
         this._cardsToBeDestroyed = _cardsToBeDestroyed;
 
         /*
-        Debug.Log("hmmm");
-        foreach (var (key, value) in _toBeAnimatedAndMerged)
-        {
-            Debug.Log(key + ": " + value);
-        }
-
-        
-        Debug.Log("hmmm2");
+        Debug.Log("_cardsToBeDestroyed");
         foreach (var value in _cardsToBeDestroyed)
         {
-            Debug.Log(": " + value);
+            Debug.Log("CardD " + value);
         }
-        
-        Debug.Log("hmm3");
-        foreach(var (key, value) in _piecesTobeAnimatedAndDestroyed)
+
+        Debug.Log("_piecesTobeAnimatedAndDestroyed");
+        foreach (var (key, value) in _piecesTobeAnimatedAndDestroyed)
         {
-            Debug.Log("Key: " + key);
-            Debug.Log("value.Item1: " + value.Item1);
-            Debug.Log("value.Item2: " + value.Item2);
+            Debug.Log("Card: " + value.Item1.name + " PieceD: " + value.Item2.name);
+        }
+
+        Debug.Log("_toBeAnimatedAndMerged");
+        foreach (var (key, value) in _toBeAnimatedAndMerged)
+        {
+            Debug.Log(value.Item1.name + ": " + value.Item2.name);
         }
         */
+
         if (_toBeAnimatedAndMerged != null && _toBeAnimatedAndMerged.Count > 0)
             MergePieces(_toBeAnimatedAndMerged);
 
+        if ((_toBeAnimatedAndMerged == null || _toBeAnimatedAndMerged.Count == 0) &&
+           _cardsToBeDestroyed != null && _cardsToBeDestroyed.Count > 0)
+        {
+            Debug.Log("here");
+            StartCoroutine(ManageAnimations());
+        }
 
+        /*
         if ((_toBeAnimatedAndMerged == null || _toBeAnimatedAndMerged.Count == 0) &&
             _cardsToBeDestroyed != null && _cardsToBeDestroyed.Count > 0)
         {
+            Debug.Log("_cardsToBeDestroyed");
+            foreach (var value in _cardsToBeDestroyed)
+            {
+                Debug.Log("CardD " + value);
+            }
+
+            Debug.Log("_piecesTobeAnimatedAndDestroyed");
+            foreach (var (key, value) in _piecesTobeAnimatedAndDestroyed)
+            {
+                Debug.Log("Card: " + value.Item1.name + " PieceD: " + value.Item2.name);
+            }
+
+            Debug.Log("_toBeAnimatedAndMerged");
+            foreach (var (key, value) in _toBeAnimatedAndMerged)
+            {
+                Debug.Log(key + ": " + value);
+            }
+
             // you may want to look at dict.Clear vs new dict
             _piecesTobeAnimatedAndDestroyed.Clear();
 
             StartCoroutine(ManageAnimations());
         }
+        */
     }
 
     public void UpdatePlayableCardInstance()
@@ -110,6 +145,7 @@ public class JoinPieces : MonoBehaviour
         //Debug.Log("UpdatePlayableCardInstance: " + _playableCardInstance);
         Debug.Log("Gap: " + _gapBetweenPieces);
         FindAdjacentPieces(_playableCardInstance);
+        //Debug.Log("_isVerticalAnimating: " + _isVerticalAnimating);
     }
 
     public void FindAdjacentPieces(CardElements _elements)
@@ -192,6 +228,7 @@ public class JoinPieces : MonoBehaviour
         Vector3 _overShootLocalScale;
 
         _dropZoneHeight = _gridManager.DropZoneSize;
+        _hasAnimatedAtStart = true;
 
         if (!_isVertical)
         {
@@ -229,7 +266,8 @@ public class JoinPieces : MonoBehaviour
         Vector3 _overShootLocalScale;
         bool _doesDictionaryContain;
 
-        _piecesToBeAnimatedAndMerged = new Dictionary<(CardElements, GameObject), (Vector3, Vector3, Vector3)>();
+        // following line is moved to the: SetMergeInformations
+        //_piecesToBeAnimatedAndMerged = new Dictionary<(CardElements, GameObject), (Vector3, Vector3, Vector3)>();
 
         foreach ((CardElements _currentCardElements, GameObject _piece, bool _isVertical) 
             in _toBeAnimatedAndMerged.Values)
@@ -276,20 +314,25 @@ public class JoinPieces : MonoBehaviour
     {
         // new gameobjects?????????????
         CardElements _parentOfPieceToDestroy = new CardElements();
-        GameObject _lastPieceToDestroy = new GameObject();
-        GameObject _lastPieceToEnlarge = new GameObject();
+        // = new GameObject() generates new game objects repatedly
+        GameObject _lastPieceToDestroy = null;
+        GameObject _lastPieceToEnlarge = null;
         Vector3 _destinationLocalPos = Vector3.zero;
         Vector3 _destinationLocalScale = Vector3.zero;
         Vector3 _overshotLocalScale = Vector3.zero;
         int _coordinateX, _coordinateY;
-        int _countOfElements = 0;
+        int _currentElementIndex = 0;
         float _timeBetweenAnimations = .25f;
 
+        // make like following for the another count computations
         //int _countOfPiecesToBeDestroyed = _piecesTobeAnimatedAndDestroyed.Values.Count;
         int _countOfPiecesToBeDestroyed = _piecesTobeAnimatedAndDestroyed.Count;
+        int _countOfpiecesToBeAnimatedAndMerged = _piecesToBeAnimatedAndMerged.Count;
 
-        //Debug.Log("_countOfPiecesToBeDestroyed: " + _countOfPiecesToBeDestroyed);
-        //Debug.Log("_countOfPiecesToBeDestroyed2: " + _countOfPiecesToBeDestroyed2);
+        if (!_hasAnimatedAtStart)
+        {
+            _hasAnimatedAtStart = true;
+        }
 
         _hasStoppedAnimating = false;
 
@@ -301,48 +344,58 @@ public class JoinPieces : MonoBehaviour
             //Debug.Log("Animate and destroy piece");
             _remainingTargets.DecreaseRemainingTargets(_countOfPiecesToBeDestroyed);
 
+            //Debug.Log("-----------------------------------------------------------------------------------");
             foreach((CardElements _currentCad, GameObject _piece) in _piecesTobeAnimatedAndDestroyed.Values)
             {
-                if(_countOfElements == _countOfPiecesToBeDestroyed - 1)
+                //Debug.Log("Iteration: " + _currentElementIndex);
+                //Debug.Log("Card: " + _currentCad.name + " Piece: " + _piece.name);
+
+                // if there are 2 elements in dict, last of them is not being animated???
+                if (_currentElementIndex == _countOfPiecesToBeDestroyed - 1)
                 {
-                    _parentOfPieceToDestroy = _currentCad;
-                    _lastPieceToDestroy = _piece;
+                    //_parentOfPieceToDestroy = _currentCad;
+                    //_lastPieceToDestroy = _piece;
+
+                    yield return StartCoroutine(_animate.DestroyingAnimation(_currentCad, _piece));
                     break; 
                 }
 
                 StartCoroutine(_animate.DestroyingAnimation(_currentCad, _piece));
 
-                _countOfElements++;
+                _currentElementIndex++;
             }
 
-            yield return StartCoroutine(_animate.DestroyingAnimation(_parentOfPieceToDestroy, _lastPieceToDestroy));
+            //yield return StartCoroutine(_animate.DestroyingAnimation(_parentOfPieceToDestroy, _lastPieceToDestroy));
         }
 
         yield return new WaitForSeconds(_timeBetweenAnimations);
 
         // merging anim
-        if(_piecesToBeAnimatedAndMerged.Count > 0)
+        if(_countOfpiecesToBeAnimatedAndMerged > 0)
         {
-            _countOfElements = 0;
+            _currentElementIndex = 0;
             
             foreach(var(key, value) in _piecesToBeAnimatedAndMerged)
             {
-                if (_countOfElements == _piecesToBeAnimatedAndMerged.Count - 1)
+                if (_currentElementIndex == _countOfpiecesToBeAnimatedAndMerged - 1)
                 {
-                    _lastPieceToEnlarge = key.Item2;
-                    _destinationLocalPos = value.Item1;
-                    _destinationLocalScale = value.Item2;
-                    _overshotLocalScale = value.Item3;
+                    //_lastPieceToEnlarge = key.Item2;
+                    //_destinationLocalPos = value.Item1;
+                    //_destinationLocalScale = value.Item2;
+                    //_overshotLocalScale = value.Item3;
+
+                    yield return StartCoroutine(_animate.EnlargingAnimation(key.Item2, value.Item2, value.Item1, value.Item3));
+
                     break;
                 }
 
                 StartCoroutine(_animate.EnlargingAnimation(key.Item2, value.Item2, value.Item1, value.Item3));
 
-                _countOfElements++;
+                _currentElementIndex++;
             }
 
-            yield return StartCoroutine(_animate.EnlargingAnimation(_lastPieceToEnlarge, 
-                _destinationLocalScale, _destinationLocalPos, _overshotLocalScale));
+            //yield return StartCoroutine(_animate.EnlargingAnimation(_lastPieceToEnlarge, 
+                //_destinationLocalScale, _destinationLocalPos, _overshotLocalScale));
         }
 
         yield return new WaitForSeconds(_timeBetweenAnimations);
@@ -449,6 +502,7 @@ public class JoinPieces : MonoBehaviour
             _hasDestroyedAtStart = false;
             _hasEnlargedAtStart = false;
         }
+
     }
 
     private void CheckForAnimations()
@@ -456,12 +510,14 @@ public class JoinPieces : MonoBehaviour
         switch(_isVerticalAnimating)
         {
             case 0:
-                // _coroutineIDMerge prevents overcall of _joinCards.TravelCoordinateSystem
-                if (_hasStoppedAnimating && !_hasComeBefore)
+                //Debug.Log("_hasStoppedAnimating: " + _hasStoppedAnimating);
+                //Debug.Log("_hasComeBefore: " + _hasComeBefore);
+                // if there is no adjacent pieces found, program still should be able to travel coordinate system
+                if (_hasStoppedAnimating && !_hasComeBefore || _hasMergedAtStart)
                 {
                     _hasComeBefore = true;
                     _joinCards.TravelCoordinateSystem();
-
+                    _hasMergedAtStart = false;
                 }
 
                 break;
@@ -510,6 +566,13 @@ public class JoinPieces : MonoBehaviour
                 FindAdjacentPieces(_elements);
             }
         }
+
+        // it didnt work
+        if(!_hasAnimatedAtStart)
+        {
+            _hasMergedAtStart = true;
+        }
+
     }
 
 }
